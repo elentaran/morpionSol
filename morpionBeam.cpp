@@ -20,7 +20,7 @@ using namespace std;
 string tabSearch[3] = {"PLAYOUT","NESTED","NRPA"};
 
 #define SENDMAIL
-//#define VERBOSE
+#define VERBOSE
 
 
 
@@ -672,7 +672,7 @@ class Problem {
                     int scoreRollout = p.NRPA (n - 1);
                     if (scoreRollout >= scoreBestRollout) {
                         p.updateBest();
-                        if ((n > 1) && (scoreRollout > scoreBestRollout)) {
+                        if ((n > 2) && (scoreRollout > scoreBestRollout)) {
 #ifdef VERBOSE
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
