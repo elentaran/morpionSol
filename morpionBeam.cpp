@@ -25,13 +25,13 @@ string tabSearch[3] = {"PLAYOUT","NESTED","NRPA"};
 
 
 // algorithm variables and default values
-int level = 1;
+int level = 2;
 int nbTimes = 1;
-int nbSearches = 10;
-int searchType = TYPE_NESTED; 
+int nbSearches = 100;
+int searchType = TYPE_NRPA; 
 
 
-const string highScoreLocation = "/home/rimmel_arp/Research/morpionSolitaire/allTimeBest";
+const string highScoreLocation = "/home/rimmel_arp/Research/morpionSol/allTimeBest";
 
 const int MaxLengthPlayout = 200;
 const int Size = 50;
@@ -680,9 +680,16 @@ class Problem {
 #endif
                         }
                         scoreBestRollout = scoreRollout;
-                        lengthBestRollout = p.lengthVariation;
-                        for (int j = 0; j < lengthBestRollout; j++)
-                            bestRollout [j] = p.variation [j];
+                        if (n == 1) {
+                            lengthBestRollout = p.lengthVariation;
+                            for (int j = 0; j < lengthBestRollout; j++)
+                                bestRollout [j] = p.variation [j];
+                        }
+                        else {
+                            lengthBestRollout = p.lengthBestRollout;
+                            for (int j = 0; j < lengthBestRollout; j++)
+                                bestRollout [j] = p.bestRollout [j];
+                        }
                     }
 
                     adapt ();
