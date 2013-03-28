@@ -65,9 +65,11 @@ set style line 667 lt rgb "#777777" pt 0 linewidth 3
 
 plot \
 "oldNRPA1.data" using 3:1:2 with yerrorline linestyle 2 title "nrpa level 1" , \
-"oldNRPA2.data" using 3:1:2 with yerrorline linestyle 2 title "nrpa level 2" , \
-"oldBeamNRPA1.data" using 3:1:2 with yerrorline linestyle 2 title "nrpabeam level 1" , \
-"oldBeamNRPA2.data" using 3:1:2 with yerrorline linestyle 2 title "nrpabeam level 2" #, \
+"oldNRPA2.data" using 3:1:2 with yerrorline linestyle 3 title "nrpa level 2" , \
+"oldNRPA3.data" using 3:1:2 with yerrorline linestyle 4 title "nrpa level 3" , \
+"oldNested.data" using 3:1:2 with yerrorline linestyle 91 title "nested" , \
+"oldBeamNRPA1.data" using 3:1:2 with yerrorline linestyle 5 title "nrpabeam level 1" , \
+"oldBeamNRPA2.data" using 3:1:2 with yerrorline linestyle 6 title "nrpabeam level 2" #, \
 #"fred_tau_90s_100x_262144pts_4thr_0.1_30_100" using 1:2:($3/20) with yerrorline linestyle 666 title "TAU", \
 #"fred_mc_90s_100x_262144pts_4thr" using 1:2:($3/20) with yerrorline linestyle 667 title "MC" ,\
 #"fred_tau_60s_60x_524288pts_4thr_0.1_10_100" using 1:2:($3/15.5) with yerrorline linestyle 667 title ".1 10", \
