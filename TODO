@@ -1,7 +1,8 @@
 list of ideas to test:
 
-- verify computestats
-- pseudorandom generator
+- quasi random generator
 - nested ucb
 - uct + memory
 - nrpa + ucb
+- nrpa + nested
+- improve nrpa
