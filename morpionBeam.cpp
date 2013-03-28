@@ -16,8 +16,9 @@ using namespace std;
 #define TYPE_PLAYOUT 0
 #define TYPE_NESTED  1
 #define TYPE_NRPA    2
+#define TYPE_NEWNRPA    3
 
-string tabSearch[3] = {"PLAYOUT","NESTED","NRPA"};
+string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW NRPA"};
 
 #define SENDMAIL
 //#define VERBOSE
@@ -28,10 +29,11 @@ string tabSearch[3] = {"PLAYOUT","NESTED","NRPA"};
 int level = 2;
 int nbTimes = 1;
 int nbSearches = 100;
-int searchType = TYPE_NRPA; 
+int searchType = TYPE_NEWNRPA; 
 
 
 const string highScoreLocation = "/home/rimmel_arp/Research/morpionSol/allTimeBest";
+const string highScoreLocationNoTouching = "/home/rimmel_arp/Research/morpionSol/allTimeBestNoTouching";
 
 const int MaxLengthPlayout = 200;
 const int Size = 50;
@@ -42,7 +44,8 @@ const int MaxBeam = 100;
 int nbPlayouts = 0;
 
 
-bool touching = true;
+//bool touching = true;
+bool touching = false;
 int nbRollouts = 10;
 
 int bestOverall = 70;
@@ -401,7 +404,10 @@ class Problem {
 
         void writeBest(string fileName="") {
             if (fileName == "") {
-                fileName = highScoreLocation;
+                if (touching)
+                    fileName = highScoreLocation;
+                else
+                    fileName = highScoreLocationNoTouching;
             }
             char s [1000];
             sprintf (s, "%s.ps", fileName.c_str());
@@ -422,7 +428,10 @@ class Problem {
 
         int readBest(string fileName="") {
             if (fileName == "") {
-                fileName = highScoreLocation;
+                if (touching)
+                    fileName = highScoreLocation;
+                else
+                    fileName = highScoreLocationNoTouching;
             }
 
             int res=0;
@@ -449,6 +458,7 @@ class Problem {
                 stringstream message;
                 message << "./sendMail.rb ";
                 message << "'new value: "<< score << "\n";
+                message << "touching: " << touching << "\n";
                 message << "search type: " << tabSearch[searchType] << "\n";
                 message << "level: " << level << "\n";
                 message << "nbSearches: " << nbSearches << "\n";
@@ -698,6 +708,43 @@ class Problem {
             return scoreBestRollout;
         }
 
+        int newNRPA (int n) {
+            if (n == 0) 
+                return playoutNRPA ();
+            else {
+                lengthBestRollout = 0;
+                scoreBestRollout = 0;
+                for (int i = 0; i < nbSearches; i++) {
+                    Problem p = *this;
+                    int scoreRollout = p.NRPA (n - 1);
+                    if (scoreRollout >= scoreBestRollout) {
+                        p.updateBest();
+                        if ((n > 1) && (scoreRollout > scoreBestRollout)) {
+#ifdef VERBOSE
+                            for (int t = 0; t < n - 1; t++)
+                                fprintf (stderr, "\t");
+                            fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreRollout);
+#endif
+                        }
+                        scoreBestRollout = scoreRollout;
+                        if (n == 1) {
+                            lengthBestRollout = p.lengthVariation;
+                            for (int j = 0; j < lengthBestRollout; j++)
+                                bestRollout [j] = p.variation [j];
+                        }
+                        else {
+                            lengthBestRollout = p.lengthBestRollout;
+                            for (int j = 0; j < lengthBestRollout; j++)
+                                bestRollout [j] = p.bestRollout [j];
+                        }
+                    }
+
+                    adapt ();
+                }
+            }
+            return scoreBestRollout;
+        }
+
 
 };
 
@@ -759,6 +806,9 @@ int main (int argc, char ** argv) {
                 break;
             case TYPE_NRPA:
                 score = p.NRPA(level);
+                break;
+            case TYPE_NEWNRPA:
+                score = p.newNRPA(level);
                 break;
             default:
                 cerr << "wrong search type" << endl;
