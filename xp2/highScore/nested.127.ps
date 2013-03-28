@@ -1,0 +1,719 @@
+%!PS-Adobe-2.0 EPSF-2.0
+%%BoundingBox: 0 0 420 630
+%%Pages: 129
+/n0 36 def
+
+/board0
+5  0   5  1   5  2   4  2   3  2   2  2   2  3   2  4   2  5
+1  5   0  5  -1  5  -1  4  -1  3  -1  2  -2  2  -3  2  -4  2
+-4 1  -4  0  -4 -1  -3 -1  -2 -1  -1 -1  -1 -2  -1 -3  -1 -4
+0 -4   1 -4   2 -4   2 -3   2 -2   2 -1   3 -1   4 -1   5 -1
+n0 2 mul array astore def
+
+/step 30 def
+/stone_radius 10 def
+/X {step mul} def
+/Y {step mul neg} def
+
+/Times-Bold findfont stone_radius scalefont setfont
+
+/circle {
+    1 setlinewidth
+    newpath exch X exch Y stone_radius 0 360 arc stroke
+} def
+
+/fillcircle {
+    1 setlinewidth
+    newpath exch X exch Y stone_radius 0 360 arc fill stroke
+} def
+
+/number {
+    exch X exch Y moveto
+    4 string cvs show
+} def
+
+/line {
+    0.5 setlinewidth
+    newpath
+    exch X exch Y moveto
+    exch X exch Y lineto
+    stroke
+} def
+
+/thickline {
+    2 setlinewidth
+    newpath
+    exch X exch Y moveto
+    exch X exch Y lineto
+    stroke
+} def
+
+/start_game {
+    0 1 n0 1 sub {
+	2 mul /i exch def
+	board0 i get board0 i 1 add get circle
+    } for
+} def
+
+/up_to_numbered {
+    /n exch def
+    n 7 mul copy
+    start_game
+    n { line number } repeat
+} def
+
+/up_to {
+    /n exch def
+    n 7 mul copy
+    start_game
+    n 0 ne {
+	n 1 sub { line circle pop } repeat
+	thickline fillcircle pop
+    } if
+} def
+127 9 -1 9 -1 5 3
+126 11 2 7 -2 11 2
+125 10 1 10 1 6 1
+124 7 1 5 -1 9 3
+123 8 6 8 2 8 6
+122 8 5 10 3 6 7
+121 8 -3 6 -5 10 -1
+120 10 -1 10 -1 6 3
+119 9 1 9 0 9 4
+118 9 4 9 4 5 4
+117 10 3 10 3 6 3
+116 9 3 9 3 5 7
+115 9 0 9 0 5 0
+114 8 0 8 -2 8 2
+113 8 2 9 2 5 2
+112 8 4 4 0 8 4
+111 6 2 6 -1 6 3
+110 8 1 5 -2 9 2
+109 9 2 9 2 5 6
+108 8 3 4 -1 8 3
+107 7 2 7 2 7 6
+106 7 5 3 1 7 5
+105 7 3 7 3 3 7
+104 6 4 6 3 6 7
+103 6 7 2 3 6 7
+102 7 6 7 6 3 6
+101 5 6 5 3 5 7
+100 5 7 1 3 5 7
+99 4 6 4 2 4 6
+98 7 4 3 0 7 4
+97 6 6 2 2 6 6
+96 5 5 6 5 2 5
+95 4 5 6 3 2 7
+94 6 3 6 3 2 3
+93 6 5 2 1 6 5
+92 5 4 5 4 1 4
+91 4 4 5 3 1 7
+90 3 5 3 3 3 7
+89 -1 7 -1 7 3 7
+88 3 7 -1 3 3 7
+87 -2 6 -2 2 -2 6
+86 3 6 3 6 -1 6
+85 2 6 2 3 2 7
+84 2 7 -2 3 2 7
+83 3 4 4 3 0 7
+82 4 3 8 -1 4 3
+81 7 0 7 -4 7 0
+80 7 -5 7 -5 3 -5
+79 6 -5 6 -5 6 -1
+78 8 -1 8 -1 4 -1
+77 6 0 8 -2 4 2
+76 7 -1 3 -5 7 -1
+75 9 -2 9 -2 5 -2
+74 6 -2 7 -3 3 1
+73 7 -4 7 -4 3 -4
+72 8 -2 4 -6 8 -2
+71 6 -4 6 -4 2 0
+70 7 -3 7 -3 3 -3
+69 5 -3 5 -5 5 -1
+68 5 -5 5 -5 1 -1
+67 6 -1 7 -2 3 2
+66 4 -4 4 -6 4 -2
+65 7 -2 3 -6 7 -2
+64 5 -4 5 -4 1 0
+63 4 -6 4 -6 0 -2
+62 6 1 6 1 2 1
+61 4 -3 1 -6 5 -2
+60 6 -3 6 -3 2 1
+59 5 -2 5 -2 1 -2
+58 -1 -5 -1 -5 3 -5
+57 4 1 4 -2 4 2
+56 4 -2 1 -5 5 -1
+55 1 -5 1 -6 1 -2
+54 1 -6 1 -6 -3 -2
+53 3 -5 3 -6 3 -2
+52 3 -2 0 -5 4 -1
+51 0 -5 0 -5 0 -1
+50 3 -6 3 -6 -1 -2
+49 3 -3 3 -3 -1 -3
+48 0 -3 -1 -4 3 0
+47 1 -3 0 -4 4 0
+46 4 0 5 0 1 0
+45 3 0 3 -1 3 3
+44 -2 -3 -2 -3 2 1
+43 1 6 1 3 1 7
+42 1 7 -3 3 1 7
+41 3 3 4 2 0 6
+40 0 6 0 3 0 7
+39 0 7 -4 3 0 7
+38 -3 -2 -3 -2 1 -2
+37 4 -5 4 -5 0 -1
+36 1 -2 1 -2 1 2
+35 1 0 1 0 -3 4
+34 -3 4 -3 4 1 4
+33 -5 2 -1 -2 -5 2
+32 0 4 3 1 -1 5
+31 3 1 -1 -3 3 1
+30 0 -2 0 -2 -4 2
+29 -5 -1 -5 -1 -1 3
+28 -3 1 -3 -1 -3 3
+27 -3 0 -4 0 0 0
+26 -3 3 1 -1 -3 3
+25 -2 3 -2 3 2 3
+24 1 3 -3 -1 1 3
+23 -1 1 -2 1 2 1
+22 -2 4 2 0 -2 4
+21 2 0 2 -1 2 3
+20 2 1 2 1 -2 5
+19 1 1 -2 -2 2 2
+18 0 0 0 -1 0 3
+17 0 3 -2 1 2 5
+16 0 2 0 2 -4 2
+15 3 -4 3 -4 -1 -4
+14 5 3 5 -1 5 3
+13 1 -1 4 -1 0 -1
+12 -2 0 -2 -2 -2 2
+11 -2 1 0 -1 -4 3
+10 0 -1 0 -1 -4 -1
+9 0 1 -2 -1 2 3
+8 -1 0 -1 -4 -1 0
+7 1 4 3 2 -1 6
+6 -4 3 -4 -1 -4 3
+5 -2 5 2 5 -2 5
+4 2 -5 2 -5 2 -1
+3 -2 -2 0 -4 -4 0
+2 -1 6 -1 2 -1 6
+1 1 2 5 2 1 2
+
+%%Page: -1 -1
+180 210 translate
+127 up_to_numbered
+showpage
+%%Page: 0 0
+180 210 translate
+0 up_to
+showpage
+%%Page: 1 1
+180 210 translate
+1 up_to
+showpage
+%%Page: 2 2
+180 210 translate
+2 up_to
+showpage
+%%Page: 3 3
+180 210 translate
+3 up_to
+showpage
+%%Page: 4 4
+180 210 translate
+4 up_to
+showpage
+%%Page: 5 5
+180 210 translate
+5 up_to
+showpage
+%%Page: 6 6
+180 210 translate
+6 up_to
+showpage
+%%Page: 7 7
+180 210 translate
+7 up_to
+showpage
+%%Page: 8 8
+180 210 translate
+8 up_to
+showpage
+%%Page: 9 9
+180 210 translate
+9 up_to
+showpage
+%%Page: 10 10
+180 210 translate
+10 up_to
+showpage
+%%Page: 11 11
+180 210 translate
+11 up_to
+showpage
+%%Page: 12 12
+180 210 translate
+12 up_to
+showpage
+%%Page: 13 13
+180 210 translate
+13 up_to
+showpage
+%%Page: 14 14
+180 210 translate
+14 up_to
+showpage
+%%Page: 15 15
+180 210 translate
+15 up_to
+showpage
+%%Page: 16 16
+180 210 translate
+16 up_to
+showpage
+%%Page: 17 17
+180 210 translate
+17 up_to
+showpage
+%%Page: 18 18
+180 210 translate
+18 up_to
+showpage
+%%Page: 19 19
+180 210 translate
+19 up_to
+showpage
+%%Page: 20 20
+180 210 translate
+20 up_to
+showpage
+%%Page: 21 21
+180 210 translate
+21 up_to
+showpage
+%%Page: 22 22
+180 210 translate
+22 up_to
+showpage
+%%Page: 23 23
+180 210 translate
+23 up_to
+showpage
+%%Page: 24 24
+180 210 translate
+24 up_to
+showpage
+%%Page: 25 25
+180 210 translate
+25 up_to
+showpage
+%%Page: 26 26
+180 210 translate
+26 up_to
+showpage
+%%Page: 27 27
+180 210 translate
+27 up_to
+showpage
+%%Page: 28 28
+180 210 translate
+28 up_to
+showpage
+%%Page: 29 29
+180 210 translate
+29 up_to
+showpage
+%%Page: 30 30
+180 210 translate
+30 up_to
+showpage
+%%Page: 31 31
+180 210 translate
+31 up_to
+showpage
+%%Page: 32 32
+180 210 translate
+32 up_to
+showpage
+%%Page: 33 33
+180 210 translate
+33 up_to
+showpage
+%%Page: 34 34
+180 210 translate
+34 up_to
+showpage
+%%Page: 35 35
+180 210 translate
+35 up_to
+showpage
+%%Page: 36 36
+180 210 translate
+36 up_to
+showpage
+%%Page: 37 37
+180 210 translate
+37 up_to
+showpage
+%%Page: 38 38
+180 210 translate
+38 up_to
+showpage
+%%Page: 39 39
+180 210 translate
+39 up_to
+showpage
+%%Page: 40 40
+180 210 translate
+40 up_to
+showpage
+%%Page: 41 41
+180 210 translate
+41 up_to
+showpage
+%%Page: 42 42
+180 210 translate
+42 up_to
+showpage
+%%Page: 43 43
+180 210 translate
+43 up_to
+showpage
+%%Page: 44 44
+180 210 translate
+44 up_to
+showpage
+%%Page: 45 45
+180 210 translate
+45 up_to
+showpage
+%%Page: 46 46
+180 210 translate
+46 up_to
+showpage
+%%Page: 47 47
+180 210 translate
+47 up_to
+showpage
+%%Page: 48 48
+180 210 translate
+48 up_to
+showpage
+%%Page: 49 49
+180 210 translate
+49 up_to
+showpage
+%%Page: 50 50
+180 210 translate
+50 up_to
+showpage
+%%Page: 51 51
+180 210 translate
+51 up_to
+showpage
+%%Page: 52 52
+180 210 translate
+52 up_to
+showpage
+%%Page: 53 53
+180 210 translate
+53 up_to
+showpage
+%%Page: 54 54
+180 210 translate
+54 up_to
+showpage
+%%Page: 55 55
+180 210 translate
+55 up_to
+showpage
+%%Page: 56 56
+180 210 translate
+56 up_to
+showpage
+%%Page: 57 57
+180 210 translate
+57 up_to
+showpage
+%%Page: 58 58
+180 210 translate
+58 up_to
+showpage
+%%Page: 59 59
+180 210 translate
+59 up_to
+showpage
+%%Page: 60 60
+180 210 translate
+60 up_to
+showpage
+%%Page: 61 61
+180 210 translate
+61 up_to
+showpage
+%%Page: 62 62
+180 210 translate
+62 up_to
+showpage
+%%Page: 63 63
+180 210 translate
+63 up_to
+showpage
+%%Page: 64 64
+180 210 translate
+64 up_to
+showpage
+%%Page: 65 65
+180 210 translate
+65 up_to
+showpage
+%%Page: 66 66
+180 210 translate
+66 up_to
+showpage
+%%Page: 67 67
+180 210 translate
+67 up_to
+showpage
+%%Page: 68 68
+180 210 translate
+68 up_to
+showpage
+%%Page: 69 69
+180 210 translate
+69 up_to
+showpage
+%%Page: 70 70
+180 210 translate
+70 up_to
+showpage
+%%Page: 71 71
+180 210 translate
+71 up_to
+showpage
+%%Page: 72 72
+180 210 translate
+72 up_to
+showpage
+%%Page: 73 73
+180 210 translate
+73 up_to
+showpage
+%%Page: 74 74
+180 210 translate
+74 up_to
+showpage
+%%Page: 75 75
+180 210 translate
+75 up_to
+showpage
+%%Page: 76 76
+180 210 translate
+76 up_to
+showpage
+%%Page: 77 77
+180 210 translate
+77 up_to
+showpage
+%%Page: 78 78
+180 210 translate
+78 up_to
+showpage
+%%Page: 79 79
+180 210 translate
+79 up_to
+showpage
+%%Page: 80 80
+180 210 translate
+80 up_to
+showpage
+%%Page: 81 81
+180 210 translate
+81 up_to
+showpage
+%%Page: 82 82
+180 210 translate
+82 up_to
+showpage
+%%Page: 83 83
+180 210 translate
+83 up_to
+showpage
+%%Page: 84 84
+180 210 translate
+84 up_to
+showpage
+%%Page: 85 85
+180 210 translate
+85 up_to
+showpage
+%%Page: 86 86
+180 210 translate
+86 up_to
+showpage
+%%Page: 87 87
+180 210 translate
+87 up_to
+showpage
+%%Page: 88 88
+180 210 translate
+88 up_to
+showpage
+%%Page: 89 89
+180 210 translate
+89 up_to
+showpage
+%%Page: 90 90
+180 210 translate
+90 up_to
+showpage
+%%Page: 91 91
+180 210 translate
+91 up_to
+showpage
+%%Page: 92 92
+180 210 translate
+92 up_to
+showpage
+%%Page: 93 93
+180 210 translate
+93 up_to
+showpage
+%%Page: 94 94
+180 210 translate
+94 up_to
+showpage
+%%Page: 95 95
+180 210 translate
+95 up_to
+showpage
+%%Page: 96 96
+180 210 translate
+96 up_to
+showpage
+%%Page: 97 97
+180 210 translate
+97 up_to
+showpage
+%%Page: 98 98
+180 210 translate
+98 up_to
+showpage
+%%Page: 99 99
+180 210 translate
+99 up_to
+showpage
+%%Page: 100 100
+180 210 translate
+100 up_to
+showpage
+%%Page: 101 101
+180 210 translate
+101 up_to
+showpage
+%%Page: 102 102
+180 210 translate
+102 up_to
+showpage
+%%Page: 103 103
+180 210 translate
+103 up_to
+showpage
+%%Page: 104 104
+180 210 translate
+104 up_to
+showpage
+%%Page: 105 105
+180 210 translate
+105 up_to
+showpage
+%%Page: 106 106
+180 210 translate
+106 up_to
+showpage
+%%Page: 107 107
+180 210 translate
+107 up_to
+showpage
+%%Page: 108 108
+180 210 translate
+108 up_to
+showpage
+%%Page: 109 109
+180 210 translate
+109 up_to
+showpage
+%%Page: 110 110
+180 210 translate
+110 up_to
+showpage
+%%Page: 111 111
+180 210 translate
+111 up_to
+showpage
+%%Page: 112 112
+180 210 translate
+112 up_to
+showpage
+%%Page: 113 113
+180 210 translate
+113 up_to
+showpage
+%%Page: 114 114
+180 210 translate
+114 up_to
+showpage
+%%Page: 115 115
+180 210 translate
+115 up_to
+showpage
+%%Page: 116 116
+180 210 translate
+116 up_to
+showpage
+%%Page: 117 117
+180 210 translate
+117 up_to
+showpage
+%%Page: 118 118
+180 210 translate
+118 up_to
+showpage
+%%Page: 119 119
+180 210 translate
+119 up_to
+showpage
+%%Page: 120 120
+180 210 translate
+120 up_to
+showpage
+%%Page: 121 121
+180 210 translate
+121 up_to
+showpage
+%%Page: 122 122
+180 210 translate
+122 up_to
+showpage
+%%Page: 123 123
+180 210 translate
+123 up_to
+showpage
+%%Page: 124 124
+180 210 translate
+124 up_to
+showpage
+%%Page: 125 125
+180 210 translate
+125 up_to
+showpage
+%%Page: 126 126
+180 210 translate
+126 up_to
+showpage
+%%Page: 127 127
+180 210 translate
+127 up_to
+showpage
+
+

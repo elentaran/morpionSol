@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# x-data in X_N_B_lvl
+# y-data in Y_N_B_lvl
+# err-y-data in ERR_Y_N_B_lvl
+
+# ./morpionBeam -level 2 -N 200 -beam1 2 -beam2 1
+
+problem="../../../../SolomonPotvinBengio/rc_202.3.txt"
+N=20
+lvl=2
+beam2=1
+
+xfilename="X_${N}_${lvl}"
+yfilenameBeam="beam_${N}_${lvl}"
+erryfilenameBeam="beam_err_${N}_${lvl}"
+yfilenameIter="iter_${N}_${lvl}"
+erryfilenameIter="iter_err_${N}_${lvl}"
+
+#rm ${xfilename} ${yfilenameBeam} ${erryfilenameBeam}
+#rm ${yfilenameIter} ${erryfilenameIter}
+
+for beam1 in 64 128
+do
+	rm PB31_RESTEMP2_20 PB31_RESTEMP22_20 PB31_RESTEMP22_20 PB31_RESTEMP32_20 PB31_RESTEMP32_20 PB31_RESTEMP32_20
+	algo="morpionBeam -level ${lvl} -N ${N} -beam1 ${beam1} -beam2 ${beam2}"
+
+	let complexity=(${N}**${lvl})*${beam1}
+	echo ${complexity} >> ${xfilename}
+
+      	echo "Working on ${beam1}" 
+      	echo "Beam ..."
+
+      	for i in `seq 1 30` 
+      	do
+      		echo -n "$i "
+      		./${algo} 2>&1 | grep score > TEMP
+		tail -n 1 TEMP >> PB31_RESTEMP2_20
+      	done
+
+      	sed "s/.*score = //" PB31_RESTEMP2_20 > PB31_RESTEMP22_20
+      	python mean.py PB31_RESTEMP22_20 > PB31_RESTEMP32_20
+
+  	sed "s/+\/- .*//" PB31_RESTEMP32_20 >> ${yfilenameBeam}
+      	sed "s/.*+\/- //" PB31_RESTEMP32_20 >> ${erryfilenameBeam}
+      
+     	echo "... beam done ; lauching iterNrpa"
+
+	rm PB31_RESTEMP2_20 PB31_RESTEMP22_20 PB31_RESTEMP22_20 PB31_RESTEMP32_20 PB31_RESTEMP32_20 PB31_RESTEMP32_20
+
+	let nbiter=${beam1}
+	algo="morpionBeam -level ${lvl} -N ${N} -beam1 1 -beam2 1"
+
+	for i in `seq 1 30` 
+	do
+		rm NEWTEMP TEMP ITEMP
+		echo -n "$i "
+		for j in `seq 1 ${nbiter}`
+		do
+			./${algo} 2>&1 | grep score > NEWTEMP
+			tail -n 1 NEWTEMP >> TEMP
+		done
+		sed "s/.*score = //" TEMP > ITEMP
+		python max.py ITEMP >> PB31_RESTEMP2_20
+	done
+      	sed "s/.*score = //" PB31_RESTEMP2_20 > PB31_RESTEMP22_20
+	python mean.py PB31_RESTEMP22_20 > PB31_RESTEMP32_20
+
+	sed "s/+\/- .*//" PB31_RESTEMP32_20 >> ${yfilenameIter}
+	sed "s/.*+\/- //" PB31_RESTEMP32_20 >> ${erryfilenameIter}
+
+	echo "... iter done"
+done
+
+python plotting2.py ${xfilename} ${yfilenameIter} ${erryfilenameIter} ${xfilename} ${yfilenameBeam} ${erryfilenameBeam}
