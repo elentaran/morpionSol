@@ -16,9 +16,9 @@ using namespace std;
 #define TYPE_PLAYOUT 0
 #define TYPE_NESTED  1
 #define TYPE_NRPA    2
-#define TYPE_NEWNRPA    3
+#define TYPE_NEWSEARCH    3
 
-string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW NRPA"};
+string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW SEARCH"};
 
 #define SENDMAIL
 //#define VERBOSE
@@ -26,10 +26,10 @@ string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW NRPA"};
 
 
 // algorithm variables and default values
-int level = 2;
+int level = 1;
 int nbTimes = 1;
-int nbSearches = 100;
-int searchType = TYPE_NEWNRPA; 
+int nbSearches = 1;
+int searchType = TYPE_NEWSEARCH; 
 
 
 const string highScoreLocation = "/home/rimmel_arp/Research/morpionSol/allTimeBest";
@@ -618,6 +618,7 @@ class Problem {
             return score;
         }
 
+
         int nestedRolloutUCB (int n) {
             //findMoves ();
             lengthBestRollout = 0;
@@ -708,7 +709,54 @@ class Problem {
             return scoreBestRollout;
         }
 
-        int newNRPA (int n) {
+        int newSearch (int n) {
+            //findMoves ();
+            lengthBestRollout = 0;
+            scoreBestRollout = 0;
+            while (true) {
+                if (moves.size () == 0)
+                    break;
+                Move bestMove = bestRollout [lengthVariation];
+
+                //for (int i=0; i<nbSearches*moves.size(); i++) {
+                for (int i=0; i<moves.size(); i++) {
+                    int currentIndex = i%moves.size();
+                    Move currentMove= getMove(moves,currentIndex);
+                    Problem p = *this;
+                    p.playMove (currentMove);
+                    int scoreRollout;
+                    if (n == 1) {
+                        //p.playout ();
+                        //p.newSearchTemp(2);
+                        //TODO
+                        scoreRollout = p.score;
+                    }
+                    else {
+                        scoreRollout = p.nestedRollout (n - 1);
+                    }
+                    if (scoreRollout > scoreBestRollout) {
+                        p.updateBest();
+                        scoreBestRollout = scoreRollout;
+                        bestMove = currentMove;
+                        lengthBestRollout = p.lengthVariation;
+                        for (int j = 0; j < p.lengthVariation; j++)
+                            bestRollout [j] = p.variation [j];
+                        if (n > 0) {
+#ifdef VERBOSE
+                            for (int t = 0; t < n - 1; t++)
+                                fprintf (stderr, "\t");
+                            fprintf (stderr, "n = %d, progress = %d, length = %d, score = %d, nbMoves = %d\n", n, lengthVariation, lengthBestRollout, scoreBestRollout, (int)moves.size ());
+#endif
+                        }
+                    }
+                }
+                playMove (bestMove);
+            }
+            score = lengthVariation;
+            return score;
+        }
+
+        int newSearchTemp (int n) {
             if (n == 0) 
                 return playoutNRPA ();
             else {
@@ -807,8 +855,8 @@ int main (int argc, char ** argv) {
             case TYPE_NRPA:
                 score = p.NRPA(level);
                 break;
-            case TYPE_NEWNRPA:
-                score = p.newNRPA(level);
+            case TYPE_NEWSEARCH:
+                score = p.newSearch(level);
                 break;
             default:
                 cerr << "wrong search type" << endl;
