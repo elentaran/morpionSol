@@ -64,11 +64,12 @@ set style line 667 lt rgb "#777777" pt 0 linewidth 3
 #set style points 668 lt rgb "gray" pt @stylefilledlosange
 
 plot \
-"nested0.data" using 3:1:2 with yerrorline linestyle 2 title "nested level 0" , \
-"nested1.data" using 3:1 with line linestyle 1 title "nested level 1" , \
-"nested2.data" using 3:1 with line linestyle 4 title "nested level 2" , \
-"nrpa1.data" using 3:1 with line linestyle 5 title "nrpa level 1" , \
-"nrpa2.data" using 3:1 with line linestyle 6 title "nrpa level 2" #, \
+"nested0.data" using 3:1:2 with yerrorline linestyle 1 title "nested level 0" , \
+"nested1.data" using 3:1:2 with yerrorline linestyle 2 title "nested level 1" , \
+"nested2.data" using 3:1:2 with yerrorline linestyle 3 title "nested level 2" , \
+"nrpa1.data" using 3:1:2 with yerrorline linestyle 5 title "nrpa level 1" , \
+"nrpa2.data" using 3:1:2 with yerrorline linestyle 6 title "nrpa level 2" , \
+"newAlg.data" using 3:1:2 with yerrorline linestyle 91 title "new Alg" #, \
 #"fred_tau_90s_100x_262144pts_4thr_0.1_30_100" using 1:2:($3/20) with yerrorline linestyle 666 title "TAU", \
 #"fred_mc_90s_100x_262144pts_4thr" using 1:2:($3/20) with yerrorline linestyle 667 title "MC" ,\
 #"fred_tau_60s_60x_524288pts_4thr_0.1_10_100" using 1:2:($3/15.5) with yerrorline linestyle 667 title ".1 10", \
