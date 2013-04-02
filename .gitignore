@@ -2,4 +2,6 @@ morpionSol
 *~
 *.o
 *.ps
+*.swo
+*.swp
 
