@@ -548,9 +548,9 @@ class Problem {
 	    for (int j = 0; j < p.lengthVariation; j++)
 	      bestRollout [j] = p.variation [j];
 	    if (n > 0) {
-	      for (int t = 0; t < n - 1; t++)
-		fprintf (stderr, "\t");
-	      fprintf (stderr, "n = %d, progress = %d, length = %d, score = %d, nbMoves = %d\n", n, lengthVariation, lengthBestRollout, scoreBestRollout, (int)moves.size ());
+	  //    for (int t = 0; t < n - 1; t++)
+	  //  fprintf (stderr, "\t");
+	  //    fprintf (stderr, "n = %d, progress = %d, length = %d, score = %d, nbMoves = %d\n", n, lengthVariation, lengthBestRollout, scoreBestRollout, (int)moves.size ());
 	    }
 	  }
 	}
@@ -614,14 +614,14 @@ class Problem {
     else {
       lengthBestRollout = 0;
       scoreBestRollout = 0;
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 10000; i++) {
 	Problem p = *this;
 	int scoreRollout = p.NRPA (n - 1);
 	if (scoreRollout >= scoreBestRollout) {
 	  if ((n > 1) && (scoreRollout > scoreBestRollout)) {
-	    for (int t = 0; t < n - 1; t++)
-	      fprintf (stderr, "\t");
-	    fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreRollout);
+	 //   for (int t = 0; t < n - 1; t++)
+	 //     fprintf (stderr, "\t");
+	 //   fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreRollout);
 	  }
 	  scoreBestRollout = scoreRollout;
 	  if (n == 1) {
@@ -638,8 +638,8 @@ class Problem {
 	    bestOverall = scoreBestRollout;
 	    char s [1000];
 	    sprintf (s, "nrpa.%d.ps", bestOverall);
-	    fprintf (stderr, "j'ecris %s\n", s);
-	    printMovesPS (s);
+	  //  fprintf (stderr, "j'ecris %s\n", s);
+	  //  printMovesPS (s);
 	  }
 	}
 	adapt ();
@@ -866,7 +866,7 @@ class BeamProblem {
 
 };
 
-int N = 100;
+int N = 1000;
 BeamProblem beamProblem [5], nextBeamProblem [5];
 
 int Problem::beamNRPA (int n, int sizeBeam [MaxLevel]) {
@@ -909,16 +909,16 @@ int Problem::beamNRPA (int n, int sizeBeam [MaxLevel]) {
 	if (beamProblem [n].pb [0].scoreBestRollout > scoreBestRollout) {
 	  scoreBestRollout = beamProblem [n].pb [0].scoreBestRollout;
 	  if (n > 1) {
-	    for (int t = 0; t < n - 1; t++)
-	      fprintf (stderr, "\t");
-	    fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreBestRollout);
+	   // for (int t = 0; t < n - 1; t++)
+	   //   fprintf (stderr, "\t");
+	   // fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreBestRollout);
 	  }
 	  if (beamProblem [n].pb [0].scoreBestRollout > bestOverall) {
 	    bestOverall = beamProblem [n].pb [0].scoreBestRollout;
 	    char s [1000];
 	    sprintf (s, "nrpa.beam[%d,%d,%d,%d,%d].%d.ps", sizeBeam [0], sizeBeam [1], sizeBeam [2], sizeBeam [3], sizeBeam [4], bestOverall);
-	    fprintf (stderr, "j'ecris %s\n", s);
-	    beamProblem [n].pb [0].printMovesPS (s);
+	  //  fprintf (stderr, "j'ecris %s\n", s);
+	  //  beamProblem [n].pb [0].printMovesPS (s);
 	  }
 	}
 /* 	  if (n == 1) { */
@@ -1388,70 +1388,18 @@ int main (int argc, char ** argv) {
   Problem p;
   p.init ();
 
-#ifdef USEMPI
-  MPI::Init(argc, argv);
-  rang = MPI::COMM_WORLD.Get_rank();
-  nbProc = MPI::COMM_WORLD.Get_size();
-  srand (time (NULL) + 100 * rang + 1);
-  if (average) {
-    if (rang == 0)
-      getRemoteAverageScore (2, 32, 32);
-    else
-      sendRemoteAverageScore (2, 32, 32);
-  }
-  
-  if (loop) {
-    if (rang == 0) {
-      while (true) {
-	p.init ();
-	int s = p.nestedBeamRolloutMPI (level, sizeBeam);
-	fprintf (stderr, "%d,", s);
-      }
-    }
-    else {
-      while (true) {
-	Message m;
-	MPI::Status status;
-	MPI::COMM_WORLD.Recv (&m, sizeof (m), MPI::CHAR, MPI_ANY_SOURCE, 0, status);
-	p.set (m);
-	//fprintf (stderr, "%d <- %d", rang, p.lengthVariation);
-	//fprintf (stderr, "%d recoit", rang);
-	int currentLengthVariation = m.currentLengthVariation;
-	int s = p.nestedBeamRollout (level - 1, sizeBeam);
-	p.get (m);
-	m.currentLengthVariation = currentLengthVariation;
-	MPI::COMM_WORLD.Send(&m, sizeof (m), MPI::CHAR, 0, 0);
-	fprintf (stderr, "%d->%d,", rang, p.lengthVariation);
-      }
-    }
-  }
-#endif
   
   if (average) {
     plotAverageScore (level, sizeBeam);
     exit (0);
   }
-  /*
-    }
- Problem p = problem [0];
-  sizeBeam [1] = 4;
-  int score = p.nestedBeamRollout (3, sizeBeam);
-
-  for (int i = 0; i < 4; i++) {
-    p = problem [0];
-    p.nestedRollout (3);
-    fprintf (stderr, "\n");
-    if (p.color [MaxSize * MaxSize - MaxSize] == 9)
-      fprintf (stderr, "cleared!\n");
-    fprintf (stderr, "score (0) = %d\n\n", p.score);
-  }
-  */
 
   beam [level] [0] = getProblem ();
   beam [level] [0]->init ();
   beam [level] [0]->initPolicy ();
-  //p.beamNRPA (level, sizeBeam);
+  //int score=p.beamNRPA (level, sizeBeam);
   int score = p.NRPA (level);
+  //int score = p.nestedRollout(level);
   cout << "Score: " << score << endl;
 
   exit (0);
