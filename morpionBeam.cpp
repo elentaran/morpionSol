@@ -29,7 +29,7 @@ string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW NRPA"};
 int level = 2;
 int nbTimes = 1;
 int nbSearches = 100;
-int searchType = TYPE_NEWNRPA; 
+int searchType = TYPE_NRPA; 
 
 
 const string highScoreLocation = "/home/rimmel_arp/Research/morpionSol/allTimeBest";
