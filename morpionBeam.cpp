@@ -28,7 +28,7 @@ string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW SEARCH"};
 // algorithm variables and default values
 int level = 3;
 int nbTimes = 1;
-int nbSearches = 1;
+int nbSearches = 1000000;
 int searchType = TYPE_NEWSEARCH; 
 
 
@@ -665,7 +665,7 @@ class Problem {
                 if (moves.size () == 0)
                     break;
 
-                if (nbStagnate > 3) {
+                if (nbStagnate > 2) {
                     //cerr << "stagnate!!!" << endl;
                     for (int i=lengthVariation; i<lengthBestRollout; i++) {
                         playMove(bestRollout[i]);
@@ -673,10 +673,15 @@ class Problem {
                     break;
                 }
 
+                int nbStagnateSearches = 0;
                 for (int i=0; i<nbSearches; i++) {
                 //for (int i=0; i<10*moves.size(); i++) {
                     //int currentIndex=i%moves.size();
                     //Move currentMove= getMove(moves,currentIndex);
+                    if (nbStagnateSearches > 1) {
+                       // cerr << "blak" << endl;
+                        break;
+                    }
                     Problem p = *this;
                     //p.playMove (currentMove);
                     int scoreRollout;
@@ -687,17 +692,28 @@ class Problem {
                     else {
                         scoreRollout = p.newSearch (n - 1);
                     }
+
+                    if (scoreRollout == scoreBestRollout) {
+                        nbStagnateSearches++;
+                        nbStagnate++;
+                    } else  {
+                        nbStagnate=0;
+                        nbStagnateSearches=0;
+                    }
 #ifdef VERBOSE
                     if (scoreRollout > scoreBestRollout)
-                        if (n > 3) {
+                        if (n > 1) {
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
                             fprintf (stderr, "n = %d, progress = %d, score = %d, nbMoves = %d\n", n, lengthVariation, scoreRollout, (int)moves.size ());
                         }
-#endif
-                    if (scoreRollout == scoreBestRollout) {
-                        nbStagnate++;
+                    if (n>2) {
+                            for (int t = 0; t < n - 1; t++)
+                                fprintf (stderr, "\t");
+                            fprintf (stderr, "n = %d, progress = %d, score = %d / %d, stagnate= %d, nbMoves = %d\n", n, lengthVariation, scoreRollout, scoreBestRollout, nbStagnateSearches, (int)moves.size ());
                     }
+
+#endif
 
                     if (scoreRollout >= scoreBestRollout) {
                         p.updateBest();
@@ -730,16 +746,26 @@ class Problem {
             else {
                 lengthBestRollout = 0;
                 scoreBestRollout = 0;
-                for (int i = 0; i < nbSearches; i++) {
+                int nbStagnate = 0;
+                //for (int i = 0; i < nbSearches; i++) {
+                while(true) {
+                    if (nbStagnate >= 2) {
+                        break;
+                    }
                     Problem p = *this;
-                    int scoreRollout = p.NRPA (n - 1);
+                    int scoreRollout = p.newSearchTemp (n - 1);
+                    if (scoreRollout == scoreBestRollout) {
+                        nbStagnate++;
+                    } else {
+                        nbStagnate = 0;
+                    }
                     if (scoreRollout >= scoreBestRollout) {
                         p.updateBest();
                         if ((n > 1) && (scoreRollout > scoreBestRollout)) {
 #ifdef VERBOSE
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
-                            fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreRollout);
+                            fprintf (stderr, "n = %d, score = %d, stagnate = %d\n", n, scoreRollout, nbStagnate);
 #endif
                         }
                         scoreBestRollout = scoreRollout;
@@ -824,7 +850,7 @@ int main (int argc, char ** argv) {
                 score = p.NRPA(level);
                 break;
             case TYPE_NEWSEARCH:
-                score = p.newSearch(level);
+                score = p.newSearchTemp(level);
                 break;
             default:
                 cerr << "wrong search type" << endl;
