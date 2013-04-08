@@ -26,9 +26,9 @@ string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW SEARCH"};
 
 
 // algorithm variables and default values
-int level = 3;
+int level = 2;
 int nbTimes = 1;
-int nbSearches = 1000000;
+int nbSearches = 100;
 int searchType = TYPE_NEWSEARCH; 
 
 
@@ -36,6 +36,7 @@ const string highScoreLocation = "/home/rimmel_arp/Research/morpionSol/allTimeBe
 const string highScoreLocationNoTouching = "/home/rimmel_arp/Research/morpionSol/allTimeBestNoTouching";
 
 const int MaxLengthPlayout = 250;
+const int MaxMoveToUpdate = 1000;
 const int Size = 50;
 const int MaxCode = 4 * Size * Size;
 const int MaxLevel = 5;
@@ -83,6 +84,8 @@ class Problem {
         unsigned long long hash;
 
         double policy [MaxCode];
+        int totalScoreMove [MaxCode];
+        int nbPlayMove [MaxCode];
 
         int score;
 
@@ -152,6 +155,13 @@ class Problem {
         void initPolicy () {
             for (int i = 0; i < MaxCode; i++)
                 policy [i] = 0.0;
+        }
+
+        void initScoreMove () {
+            for (int i = 0; i < MaxCode; i++){
+                totalScoreMove [i] = 0;
+                nbPlayMove [i] = 0;
+            }
         }
 
         void printMap (FILE *fp) {
@@ -471,18 +481,23 @@ class Problem {
             }
         }
 
+
+        double getValMove(Move move) {
+            return exp (policy [code (move)]);
+        }
+
         int chooseRandomMoveNRPA (list<int> & moves) {
             double totalSum = 0.0;
             for (list<Move>::iterator it = moves.begin (); it != moves.end (); ++it) 
-                totalSum += exp (policy [code (*it)]);
+                totalSum += getValMove(*it);
             double index = totalSum * (rand() / (RAND_MAX + 1.0));
             int current = 0;
             double sum = 0.0;
             list<int>::iterator i = moves.begin ();
-            sum += exp (policy [code (*i)]);
+            sum += getValMove(*i);
             while (sum < index) {
                 i++;
-                sum += exp (policy [code (*i)]);
+                sum += getValMove(*i);
             }
             return *i;
         }
@@ -500,6 +515,54 @@ class Problem {
             }
         }
 
+        double getScoreNew(int indice) {
+            double res;
+            if (nbPlayMove [indice] == 0)
+                res = scoreBestRollout;
+            else
+                res = (double) totalScoreMove [indice] / nbPlayMove [indice];
+            cerr << exp(res) << endl;
+            return exp(res);
+        }
+
+        int chooseRandomMoveNew (list<int> & moves) {
+            double totalSum = 0.0;
+            for (list<Move>::iterator it = moves.begin (); it != moves.end (); ++it) 
+                totalSum += getScoreNew(code(*it));
+            //exit(0);
+            double index = totalSum * (rand() / (RAND_MAX + 1.0));
+            int current = 0;
+            double sum = 0.0;
+            list<int>::iterator i = moves.begin ();
+            sum += getScoreNew(code(*i));
+            while (sum < index) {
+                i++;
+                sum += getScoreNew(code(*i));
+            }
+            return *i;
+        }
+
+        int playoutNew () {
+            nbPlayouts++;
+            while (true) {
+                if (moves.size () == 0) {
+                    score = lengthVariation;
+                    return score;
+                }
+                int move;
+                move = chooseRandomMoveNew (moves);
+                playMove (move);
+            }
+        }
+
+
+        void updateScoreMove(Problem p) {
+            for (int i=0; i<p.lengthVariation; i++) {
+                nbPlayMove[code(p.variation[i])]++;
+                totalScoreMove[code(p.variation[i])]+=p.lengthVariation;
+            }
+        }
+
         void adapt () {
             Problem p;
             p.init ();
@@ -507,6 +570,24 @@ class Problem {
                 p.policy [i] = policy [i];
             for (int j = 0; j < lengthBestRollout; j++) {
                 p.policy [code (bestRollout [j])] += 1.0;
+                double totalSum = 0.0;
+                for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it) 
+                    totalSum += exp (policy [code (*it)]);
+                for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it) 
+                    p.policy [code (*it)] -= exp (policy [code (*it)]) / totalSum;
+                p.playMove (bestRollout [j]);
+            }
+            for (int i = 0; i < MaxCode; i++)
+                policy [i] = p.policy [i];
+        }
+
+        void adaptNew () {
+            Problem p;
+            p.init ();
+            for (int i = 0; i < MaxCode; i++)
+                p.policy [i] = policy [i];
+            for (int j = 0; j < lengthBestRollout; j++) {
+                p.policy [code (bestRollout [j])] += 1.;
                 double totalSum = 0.0;
                 for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it) 
                     totalSum += exp (policy [code (*it)]);
@@ -665,21 +746,22 @@ class Problem {
                 if (moves.size () == 0)
                     break;
 
-                if (nbStagnate > 2) {
-                    //cerr << "stagnate!!!" << endl;
-                    for (int i=lengthVariation; i<lengthBestRollout; i++) {
-                        playMove(bestRollout[i]);
-                    }
-                    break;
-                }
+            //    if (nbStagnate >= 2) {
+            //        //cerr << "stagnate!!!" << endl;
+            //        for (int i=lengthVariation; i<lengthBestRollout; i++) {
+            //            playMove(bestRollout[i]);
+            //        }
+            //        break;
+            //    }
 
                 int nbStagnateSearches = 0;
                 for (int i=0; i<nbSearches; i++) {
                 //for (int i=0; i<10*moves.size(); i++) {
                     //int currentIndex=i%moves.size();
                     //Move currentMove= getMove(moves,currentIndex);
-                    if (nbStagnateSearches > 1) {
-                       // cerr << "blak" << endl;
+                    if (nbStagnateSearches >= 3) {
+                        if (n>0)
+                        cerr << "blak " << scoreBestRollout << endl;
                         break;
                     }
                     Problem p = *this;
@@ -702,7 +784,7 @@ class Problem {
                     }
 #ifdef VERBOSE
                     if (scoreRollout > scoreBestRollout)
-                        if (n > 1) {
+                        if (n > 0) {
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
                             fprintf (stderr, "n = %d, progress = %d, score = %d, nbMoves = %d\n", n, lengthVariation, scoreRollout, (int)moves.size ());
@@ -787,6 +869,70 @@ class Problem {
             return scoreBestRollout;
         }
 
+        int distSeq (int* seq1, int seq1size, int* seq2, int seq2size) {
+            if (seq1size != seq2size) {
+                return 1000;
+            } else {
+                int nbDiff = 0;
+                for (int i=0; i<seq1size; i++) {
+                    if (seq1[i] != seq2[i])
+                        nbDiff++;
+                }
+                return nbDiff;
+            }
+        }
+
+        int newSearch2 (int n) {
+            if (n == 0) 
+                return playoutNRPA ();
+                //return playoutNew ();
+            else {
+                lengthBestRollout = 0;
+                scoreBestRollout = 0;
+                int nbStagnate = 0;
+                while(true) {
+                    if (nbStagnate >= 1) {
+                        break;
+                    }
+                    Problem p = *this;
+                    int scoreRollout = p.newSearch2 (n - 1);
+                    //cout << distSeq(bestRollout,lengthBestRollout,p.variation, p.lengthVariation) << endl;
+                    //if (scoreRollout == scoreBestRollout) {
+                    if (distSeq(bestRollout,lengthBestRollout,p.variation, p.lengthVariation) <= (int) (0.25 * lengthBestRollout)) {
+                        nbStagnate++;
+                    } 
+                    if (scoreRollout >= scoreBestRollout) {
+                        p.updateBest();
+                        if ((n > 1) && (scoreRollout > scoreBestRollout)) {
+#ifdef VERBOSE
+                            for (int t = 0; t < n - 1; t++)
+                                fprintf (stderr, "\t");
+                            fprintf (stderr, "n = %d, score = %d, stagnate = %d\n", n, scoreRollout, nbStagnate);
+#endif
+                        }
+                        scoreBestRollout = scoreRollout;
+                        
+                        lengthBestRollout = p.lengthVariation;
+                        for (int j = 0; j < lengthBestRollout; j++)
+                            bestRollout [j] = p.variation [j];
+                    }
+                    //updateScoreMove(p);
+                    //adaptNew ();
+                    adapt ();
+                }
+            }
+            lengthVariation = lengthBestRollout;
+            for (int i=0; i< lengthBestRollout; i++)
+                variation[i] = bestRollout[i];
+         //   if (n>1) {
+         //       for (int i=0; i< lengthVariation; i++) {
+         //           int indice = code(variation[i]);
+         //           cerr << indice << " " << policy[indice] << " " << nbPlayMove[indice] << " " << totalScoreMove[indice] << " " << (double) totalScoreMove[indice] / nbPlayMove[indice]<< endl;
+         //       }
+         //   }
+            return scoreBestRollout;
+        }
+
 
 };
 
@@ -850,7 +996,7 @@ int main (int argc, char ** argv) {
                 score = p.NRPA(level);
                 break;
             case TYPE_NEWSEARCH:
-                score = p.newSearchTemp(level);
+                score = p.newSearch2(level);
                 break;
             default:
                 cerr << "wrong search type" << endl;
