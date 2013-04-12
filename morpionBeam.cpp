@@ -28,7 +28,7 @@ string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW SEARCH"};
 // algorithm variables and default values
 int level = 2;
 int nbTimes = 1;
-int nbSearches = 100;
+int nbSearches = 50;
 int searchType = TYPE_NEWSEARCH; 
 
 
@@ -84,6 +84,7 @@ class Problem {
         unsigned long long hash;
 
         double policy [MaxCode];
+        int bestScoreMove [MaxCode];
         int totalScoreMove [MaxCode];
         int nbPlayMove [MaxCode];
 
@@ -555,6 +556,14 @@ class Problem {
             }
         }
 
+        void updateBestScoreMove(Problem p) {
+            for (int i=0; i<p.lengthVariation; i++) {
+                if (p.lengthVariation > bestScoreMove[code(p.variation[i])]) {
+                    bestScoreMove[code(p.variation[i])] = p.lengthVariation;
+                }
+            }
+        }
+
 
         void updateScoreMove(Problem p) {
             for (int i=0; i<p.lengthVariation; i++) {
@@ -581,6 +590,19 @@ class Problem {
                 policy [i] = p.policy [i];
         }
 
+        double decreaseValue(int index) {
+            double ratio;
+            if (bestScoreMove[code(index)] == 0) {
+                ratio = -0;
+                //cout << policy[code(index)] << endl;
+            } else {
+                //ratio = 0;
+                ratio = 12*(double) (lengthBestRollout-bestScoreMove[code(index)])/lengthBestRollout;
+            }
+            //cout << ratio << endl;
+            return exp(policy[code(index)]+ratio);
+        }
+
         void adaptNew () {
             Problem p;
             p.init ();
@@ -590,13 +612,18 @@ class Problem {
                 p.policy [code (bestRollout [j])] += 1.;
                 double totalSum = 0.0;
                 for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it) 
-                    totalSum += exp (policy [code (*it)]);
+                    totalSum += decreaseValue(*it);
                 for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it) 
-                    p.policy [code (*it)] -= exp (policy [code (*it)]) / totalSum;
+                    p.policy [code (*it)] -= decreaseValue(*it) / totalSum;
                 p.playMove (bestRollout [j]);
             }
             for (int i = 0; i < MaxCode; i++)
                 policy [i] = p.policy [i];
+         //   cout << "new adapt" << endl;
+         //   for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it)  {
+         //       cout << "move: " << code(*it) << " value: " << policy[code(*it)] << " best: " << bestScoreMove[code(*it)] << endl;
+         //   }
+
         }
 
         int chooseRandomMove (list<int> & moves) {
@@ -822,65 +849,6 @@ class Problem {
             return score;
         }
 
-        int newSearchTemp (int n) {
-            if (n == 0) 
-                return playoutNRPA ();
-            else {
-                lengthBestRollout = 0;
-                scoreBestRollout = 0;
-                int nbStagnate = 0;
-                //for (int i = 0; i < nbSearches; i++) {
-                while(true) {
-                    if (nbStagnate >= 2) {
-                        break;
-                    }
-                    Problem p = *this;
-                    int scoreRollout = p.newSearchTemp (n - 1);
-                    if (scoreRollout == scoreBestRollout) {
-                        nbStagnate++;
-                    } else {
-                        nbStagnate = 0;
-                    }
-                    if (scoreRollout >= scoreBestRollout) {
-                        p.updateBest();
-                        if ((n > 1) && (scoreRollout > scoreBestRollout)) {
-#ifdef VERBOSE
-                            for (int t = 0; t < n - 1; t++)
-                                fprintf (stderr, "\t");
-                            fprintf (stderr, "n = %d, score = %d, stagnate = %d\n", n, scoreRollout, nbStagnate);
-#endif
-                        }
-                        scoreBestRollout = scoreRollout;
-                        if (n == 1) {
-                            lengthBestRollout = p.lengthVariation;
-                            for (int j = 0; j < lengthBestRollout; j++)
-                                bestRollout [j] = p.variation [j];
-                        }
-                        else {
-                            lengthBestRollout = p.lengthBestRollout;
-                            for (int j = 0; j < lengthBestRollout; j++)
-                                bestRollout [j] = p.bestRollout [j];
-                        }
-                    }
-
-                    adapt ();
-                }
-            }
-            return scoreBestRollout;
-        }
-
-        int distSeq (int* seq1, int seq1size, int* seq2, int seq2size) {
-            if (seq1size != seq2size) {
-                return 1000;
-            } else {
-                int nbDiff = 0;
-                for (int i=0; i<seq1size; i++) {
-                    if (seq1[i] != seq2[i])
-                        nbDiff++;
-                }
-                return nbDiff;
-            }
-        }
 
         int newSearch2 (int n) {
             if (n == 0) 
@@ -889,18 +857,9 @@ class Problem {
             else {
                 lengthBestRollout = 0;
                 scoreBestRollout = 0;
-                int nbStagnate = 0;
-                while(true) {
-                    if (nbStagnate >= 1) {
-                        break;
-                    }
+                for (int i=0; i<nbSearches; i++) {
                     Problem p = *this;
                     int scoreRollout = p.newSearch2 (n - 1);
-                    //cout << distSeq(bestRollout,lengthBestRollout,p.variation, p.lengthVariation) << endl;
-                    //if (scoreRollout == scoreBestRollout) {
-                    if (distSeq(bestRollout,lengthBestRollout,p.variation, p.lengthVariation) <= (int) (0.25 * lengthBestRollout)) {
-                        nbStagnate++;
-                    } 
                     if (scoreRollout >= scoreBestRollout) {
                         p.updateBest();
                         if ((n > 1) && (scoreRollout > scoreBestRollout)) {
@@ -916,20 +875,16 @@ class Problem {
                         for (int j = 0; j < lengthBestRollout; j++)
                             bestRollout [j] = p.variation [j];
                     }
-                    //updateScoreMove(p);
-                    //adaptNew ();
-                    adapt ();
+                    updateBestScoreMove(p);
+                    adaptNew ();
+                    //adapt ();
+                    
                 }
             }
+
             lengthVariation = lengthBestRollout;
             for (int i=0; i< lengthBestRollout; i++)
                 variation[i] = bestRollout[i];
-         //   if (n>1) {
-         //       for (int i=0; i< lengthVariation; i++) {
-         //           int indice = code(variation[i]);
-         //           cerr << indice << " " << policy[indice] << " " << nbPlayMove[indice] << " " << totalScoreMove[indice] << " " << (double) totalScoreMove[indice] / nbPlayMove[indice]<< endl;
-         //       }
-         //   }
             return scoreBestRollout;
         }
 
@@ -980,6 +935,7 @@ int main (int argc, char ** argv) {
         }
     }
 
+
     Problem p,bestP;
     int bestscore = 0;
     for (int i=0; i<nbTimes; i++) {
@@ -1013,7 +969,7 @@ int main (int argc, char ** argv) {
     //sprintf (s, "highScore/nested.%d.ps", bestscore);
     //p.printMovesPS(s);
     cout << "Score: " << bestscore << endl;
-    cout << "nbPlayouts: " << nbPlayouts << endl;
+    cout << "Score: " << nbPlayouts << endl;
 
 
 
