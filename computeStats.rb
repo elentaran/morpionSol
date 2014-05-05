@@ -1,26 +1,66 @@
 #!/usr/bin/ruby
+require 'optparse'
 
-$nameProg = "./morpionSol"
+$options = {
+    :nameProg => "./morpionSol",
+    :nbrun => 100,
+    :keyWord => ["Score","Playout"],
+    :nbSignificantNumbers => 1
+}
+$options[:format] = "%." + $options[:nbSignificantNumbers].to_s + "f"
 
-usage = "usage: computeStats.rb nbrun[=100]"
+optparse = OptionParser.new do |opt|
+    opt.banner = "usage: ./computeStats.rb [options]"
 
-if (ARGV.length > 0)
-    nbrun = ARGV[0].to_i
-    if (nbrun == 0)
-        puts usage
+    opt.on( '-p', '--prog NP', 'executable to run') do |name|
+        $options[:nameProg] = name
     end
-else
-    nbrun = 100
+
+    opt.on('-n', '--nbrun NB',Integer, 'nbrun') do |nb|
+        $options[:nbrun] = nb
+    end
+
+    opt.on('-k', '--keyword key1,key2,key3', Array, 'list of keywords to find in the output') do |l|
+        $options[:keyWord] = l
+    end
+
+    opt.on('-sn', '--signum SN',Integer, 'number of significant numbers in the result') do |sn|
+        $options[:nbSignificantNumbers] = sn 
+        $options[:format] = "%." + $options[:nbSignificantNumbers].to_s + "f"
+    end
+
+    opt.on( '-h', '--help', 'Display this screen' ) do
+        puts opt
+        exit
+    end
 end
 
-if (ARGV.length > 1)
-    puts usage
+optparse.parse!
+
+if (!ARGV.empty?)
+    STDERR.puts "argument " + ARGV.inspect + " is not recognized"
+    exit
 end
 
 def launchProg()
-    cmd = $nameProg
+    cmd = $options[:nameProg]
     value = `#{cmd}`
-    res = value.scan(/Score: (\d*)/)   # res is the first (and only) match
+    if (!$?.success?)
+        STDERR.puts ""
+        STDERR.puts "program \"" + cmd + "\" not found"
+        exit
+    end
+    res = {}
+    $options[:keyWord].each do |keyword|
+        tempRes = value.scan(/#{keyword}.* (\d*)/)   # res is a list of all the occurence of keyword
+                                                     # the value is the last number on a line where keyword is found
+        if (tempRes.length == 0)
+            STDERR.puts ""
+            STDERR.puts "keyword \"#{keyword}\" not found during the execution of the program"
+            exit
+        end
+        res.store(keyword,tempRes)   
+    end
     return res
 end
 
@@ -39,39 +79,72 @@ def ciArray(list)
     return 1.96*s/Math.sqrt(list.size)
 end
 
+
 def printRes(listRes,listTime)
-    for i in 0...listRes.length
-        puts meanArray(listRes[i]).to_s + " +- " + ciArray(listRes[i]).to_s # + " (" + listRes[i].length.to_s + ")"
+    l1 = "#"
+    l2 = "#"
+    $options[:keyWord].each do |key|
+        l1 += key.to_s + "\t\t"
+        l2 += "mean\t" + "ci\t"
     end
-    puts meanArray(listTime).to_s + "s"
+    l1 += "Time"
+    puts l1
+    puts l2
+    nbLines = listRes.values.map{|x| x.length}.max
+    for i in 0...nbLines do
+        s = ""
+        $options[:keyWord].each do |key|
+            if (i < listRes[key].length)
+                s += $options[:format] % meanArray(listRes[key][i]).to_s + "\t" + $options[:format] % ciArray(listRes[key][i]).to_s + "\t" #+ sdArray(listRes[key][i]).to_s + "\t" + listRes[key][i].max.to_s + "\t"
+            else
+                s += $options[:format] % meanArray(listRes[key][-1]).to_s + "\t" + $options[:format] % ciArray(listRes[key][-1]).to_s + "\t" # + sdArray(listRes[key][-1]).to_s + "\t" + listRes[key][-1].max.to_s + "\t"
+            end
+        end
+        s += $options[:format] % meanArray(listTime).to_s 
+        puts s
+    end
+    #puts meanArray(listTime).to_s + "s"
 end
 
 begin
 
-    listRes = []
+    #init
+    listRes = {}
+    $options[:keyWord].each do |key|
+        listRes.store(key,[])
+    end
     listTime = []
-    puts "coucou"
-    for i in 1..nbrun
-        printf("\r%i / %i",i,nbrun )
-        STDOUT.flush
+
+    for i in 1..$options[:nbrun]
+        STDERR.printf("\r%i / %i",i,$options[:nbrun] )
+        STDERR.flush
         startt = Time.now
         res = launchProg()
-        if (res.length>listRes.length)
-            for j in listRes.length...res.length
-                listRes[j]=[]
+
+        # if a new results has more values for a certain key, add new rows in listRes
+        res.keys.each do |resKey|
+            if (res[resKey].length>listRes[resKey].length)
+                for j in listRes[resKey].length...res[resKey].length
+                    listRes[resKey].push([])
+                end
             end
         end
-        for j in 0...res.length
-            listRes[j].push(res[j][0].to_i)
+
+        # add the results to listRes
+        listRes.keys.each do |resKey|
+            for j in 0...res[resKey].length
+                listRes[resKey][j].push(res[resKey][j][0].to_i)
+            end
         end
+
         endt = Time.now
         listTime.push(endt-startt)
     end
-    puts ""
+    STDERR.puts ""
     printRes(listRes,listTime)
 
 rescue Exception => e
-    puts ""
+    STDERR.puts ""
     if (i>2)
         printRes(listRes,listTime)
     else

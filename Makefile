@@ -16,7 +16,7 @@ prof: clean
 
 
 opt: clean
-	$(MAKE) $(MAKEFILE) OPT="-O3 -DNDEBUG"
+	$(MAKE) $(MAKEFILE) OPT="-O2 -DNDEBUG"
 
 boost: 
 	$(MAKE) $(MAKEFILE) BOOST_LIB="/usr/local/lib/libboost_program_options.a"

@@ -1,8 +1,49 @@
+==== Planning Today ====
+
+        
+
+TODO
+
+commencer redaction papier
+organisation résultats
+apprendre gnuplot
+
+==== Planning General ====
+
+
+
+analyser nrpa
+    comprendre
+    xp
+    commencer rédaction papier
+
+imaginer amélioration (x N)
+coder amélioration (x N)
+xp amélioration (x N)
+
+choisir conf
+
+
+
+Submit Paper
+
+
+
 list of ideas to test:
 
 - quasi random generator
-- nested ucb
 - uct + memory
 - nrpa + ucb
-- nrpa + nested
 - improve nrpa
+
+
+
+
+==== Brouillon ====
+
+
+==== Gnuplot Info ====
+ # for comments
+ two blank lines to separate data (index n) to print only the n block of data
+ see command "every"
+

@@ -614,7 +614,7 @@ class Problem {
     else {
       lengthBestRollout = 0;
       scoreBestRollout = 0;
-      for (int i = 0; i < 10000; i++) {
+      for (int i = 0; i < 100; i++) {
 	Problem p = *this;
 	int scoreRollout = p.NRPA (n - 1);
 	if (scoreRollout >= scoreBestRollout) {
@@ -866,7 +866,7 @@ class BeamProblem {
 
 };
 
-int N = 1000;
+int N = 100;
 BeamProblem beamProblem [5], nextBeamProblem [5];
 
 int Problem::beamNRPA (int n, int sizeBeam [MaxLevel]) {
@@ -1397,8 +1397,8 @@ int main (int argc, char ** argv) {
   beam [level] [0] = getProblem ();
   beam [level] [0]->init ();
   beam [level] [0]->initPolicy ();
-  //int score=p.beamNRPA (level, sizeBeam);
-  int score = p.NRPA (level);
+  int score=p.beamNRPA (level, sizeBeam);
+  //int score = p.NRPA (level);
   //int score = p.nestedRollout(level);
   cout << "Score: " << score << endl;
 

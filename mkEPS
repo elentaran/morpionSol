@@ -1,5 +1,0 @@
-#!/bin/sh
-gnuplot gnuplotscript > temp.eps
-sed '/BoundingBox\:/d' temp.eps > res.eps
-rm temp.eps
-
