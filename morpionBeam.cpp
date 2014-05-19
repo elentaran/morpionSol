@@ -737,6 +737,10 @@ class Problem {
 #endif
                         }
                     }
+                    if (nbPlayouts % (int)(pow(nbSearches*10*80,level)/nbPoints) == 0 && n == 1) {
+                        cout << "Score: " << scoreBestRollout << endl;
+                        cout << "Playout: " << nbPlayouts << endl;
+                    }
                 }
                 playMove (bestMove);
                 //findMoves ();
@@ -917,8 +921,8 @@ int main (int argc, char ** argv) {
     //char s [1000];
     //sprintf (s, "highScore/nested.%d.ps", bestscore);
     //p.printMovesPS(s);
-   // cout << "Score: " << bestscore << endl;
-   // cout << "Playout: " << nbPlayouts << endl;
+    cout << "Score: " << bestscore << endl;
+    cout << "Playout: " << nbPlayouts << endl;
 
 
 

@@ -5,7 +5,7 @@
 # command to execute. put "PARAM" where the parameter is used.
 #$execProg = 'make opt CPPFLAG="PARAM"; ./latinSquare'     
 #$execProg = 'make opt CPPFLAG="PARAM" -s; ./computeStats.rb 10'     
-$execProg = './computeStats.rb -n 100 -p "./morpionSol PARAM"'     
+$execProg = './computeStats.rb -n 1 -p "./morpionSol PARAM"'     
 #$execProg = 'mkdir "tempPARAM"; cp *.cpp *.h Makefile computeStats.rb "tempPARAM"; cd "tempPARAM"; make opt CPPFLAG="PARAM"; ./computeStats.rb 1000; cd ..; rm -r "tempPARAM"'     
 #$execProg = './computeStats.rb 100 "./latinSquare -probaKeep PARAM"'
 #$execProg = './computeStats.rb 10'     
@@ -31,7 +31,7 @@ $paramName = "param"
 $fileRes = "nrpa.data"             
 
 # number of cores that should be used
-$nbcores = 4
+$nbcores = 1
 #####
 
 
@@ -41,7 +41,7 @@ def execCmd(param)
     if (execCmd.include?("PARAM"))
         execCmd = execCmd.gsub(/PARAM/, "#{param}")
     end
-    #puts execCmd
+    puts execCmd
     value = `#{execCmd}`
     if (!$?.success?)
         puts "error during the execution"
@@ -64,7 +64,7 @@ end
 
 def func()
     while (!$paramValues.empty?) do
-        param = $paramValues.take(1)
+        param = $paramValues.first
         $paramValues = $paramValues.drop(1)
         execCmd(param)
     end
