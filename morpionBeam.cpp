@@ -26,10 +26,11 @@ string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW SEARCH"};
 
 
 // algorithm variables and default values
-int level = 1;
+int level = 2;
 int nbTimes = 1;
 int nbSearches = 100;
 int searchType = TYPE_NRPA; 
+float convRatio = 1.0;
 //int searchType = TYPE_NESTED; 
 //int searchType = TYPE_NEWSEARCH; 
 
@@ -500,8 +501,9 @@ class Problem {
 
         int chooseRandomMoveNRPA (list<int> & moves) {
             double totalSum = 0.0;
-            for (list<Move>::iterator it = moves.begin (); it != moves.end (); ++it) 
+            for (list<Move>::iterator it = moves.begin (); it != moves.end (); ++it) {
                 totalSum += getValMove(*it);
+            }
             double index = totalSum * (rand() / (RAND_MAX + 1.0));
             int current = 0;
             double sum = 0.0;
@@ -590,6 +592,24 @@ class Problem {
                 nbPlayMove[code(p.variation[i])]++;
                 totalScoreMove[code(p.variation[i])]+=p.lengthVariation;
             }
+        }
+
+        void adaptRatio () {
+            Problem p;
+            p.init ();
+            for (int i = 0; i < MaxCode; i++)
+                p.policy [i] = policy [i];
+            for (int j = 0; j < lengthBestRollout; j++) {
+                p.policy [code (bestRollout [j])] += convRatio;
+                double totalSum = 0.0;
+                for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it) 
+                    totalSum += exp (policy [code (*it)]);
+                for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it) 
+                    p.policy [code (*it)] -= convRatio * exp (policy [code (*it)]) / totalSum;
+                p.playMove (bestRollout [j]);
+            }
+            for (int i = 0; i < MaxCode; i++)
+                policy [i] = p.policy [i];
         }
 
         void adapt () {
@@ -782,7 +802,8 @@ class Problem {
                                 bestRollout [j] = p.bestRollout [j];
                         }
                     }
-                    adapt ();
+                    //adapt ();
+                    adaptRatio ();
                     if (nbPlayouts % (int)(pow(nbSearches,level)/nbPoints) == 0 && n == 1) {
                         cout << "Score: " << bestscore << endl;
                         cout << "Playout: " << nbPlayouts << endl;
@@ -878,6 +899,10 @@ int main (int argc, char ** argv) {
         }
         else if (!strcmp (argv [i], "-searchType")) {
             if (sscanf (argv [++i], "%d", & searchType) != 1)
+                usage();
+        }
+        else if (!strcmp (argv [i], "-convRatio")) {
+            if (sscanf (argv [++i], "%f", & convRatio) != 1)
                 usage();
         }
         else if (!strcmp (argv [i], "-touching")) {
