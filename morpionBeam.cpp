@@ -21,17 +21,17 @@ using namespace std;
 string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW SEARCH"};
 
 #define SENDMAIL
-//#define VERBOSE
+#define VERBOSE
 #define SAVEBEST
 
 
 // algorithm variables and default values
-int level = 1;
+int level = 6;
 int nbTimes = 1;
 int nbSearches = 100;
-int searchType = TYPE_NRPA; 
+//int searchType = TYPE_NRPA; 
 //int searchType = TYPE_NESTED; 
-//int searchType = TYPE_NEWSEARCH; 
+int searchType = TYPE_NEWSEARCH; 
 
 
 const string highScoreLocation = "/home/rimmel_arp/Research/morpionSol/allTimeBest";
@@ -317,6 +317,7 @@ class Problem {
                 edge [x + dx] [y + dy] [oppositek] = '.';
                 hash ^= hashEdge [x + dx] [y + dy] [oppositek];
             }
+            return 0;
         }
 
         bool legalMove (int move) {
@@ -503,7 +504,6 @@ class Problem {
             for (list<Move>::iterator it = moves.begin (); it != moves.end (); ++it) 
                 totalSum += getValMove(*it);
             double index = totalSum * (rand() / (RAND_MAX + 1.0));
-            int current = 0;
             double sum = 0.0;
             list<int>::iterator i = moves.begin ();
             sum += getValMove(*i);
@@ -552,7 +552,6 @@ class Problem {
                 totalSum += getScoreNew(code(*it));
             //exit(0);
             double index = totalSum * (rand() / (RAND_MAX + 1.0));
-            int current = 0;
             double sum = 0.0;
             list<int>::iterator i = moves.begin ();
             sum += getScoreNew(code(*i));
@@ -763,7 +762,8 @@ class Problem {
                         if (( n > 2) && (scoreRollout > scoreBestRollout)) {
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
-                            fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreRollout);
+                            //fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreRollout);
+                            fprintf (stderr, "n = %d, nbPlay = %d, progress = %d, score = %d\n", n, nbPlayouts, i, scoreRollout);
                         }
 #endif
                         scoreBestRollout = scoreRollout;
@@ -796,16 +796,21 @@ class Problem {
             else {
                 lengthBestRollout = 0;
                 scoreBestRollout = 0;
-                for (int i=0; i<nbSearches; i++) {
+                int stagn = 0;
+                while (stagn<10) {
+                //for (int i=0; i<nbSearches; i++) {
                     Problem p = *this;
                     int scoreRollout = p.newSearch (n - 1);
+                    if (scoreRollout > scoreBestRollout) 
+                        stagn=0;
                     if (scoreRollout >= scoreBestRollout) {
                         p.updateBest();
 #ifdef VERBOSE
-                        if ((n > 3) && (scoreRollout > scoreBestRollout)) {
+                        if ((n > 2) && (scoreRollout > scoreBestRollout)) {
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
-                            fprintf (stderr, "n = %d, score = %d, nb search = %d\n", n, scoreRollout, i);
+                            //fprintf (stderr, "n = %d, score = %d, nb search = %d\n", n, scoreRollout, i);
+                            fprintf (stderr, "n = %d, nbPlay = %d, score = %d / %d\n", n, nbPlayouts, scoreRollout, bestscore);
                         }
 #endif
                         scoreBestRollout = scoreRollout;
@@ -813,17 +818,11 @@ class Problem {
                         lengthBestRollout = p.lengthVariation;
                         for (int j = 0; j < lengthBestRollout; j++)
                             bestRollout [j] = p.variation [j];
+
+                    } else {
+                        stagn++;
                     }
-#ifdef VERBOSE
-                        if ((n > 4) ) {
-                            for (int t = 0; t < n - 1; t++)
-                                fprintf (stderr, "\t");
-                            fprintf (stderr, "n = %d, score = %d, nb search = %d\n", n, scoreRollout, i);
-                        }
-#endif
-                    updateBestScoreMove(p);
-                    adaptNew ();
-                    //adapt ();
+                    adapt ();
                     if (nbPlayouts % (int)(pow(nbSearches,level)/nbPoints) == 0 && n == 1) {
                         cout << "Score: " << bestscore << endl;
                         cout << "Playout: " << nbPlayouts << endl;
