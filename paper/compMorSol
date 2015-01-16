@@ -1,0 +1,6 @@
+latex morSol.tex
+latex morSol.tex
+bibtex morSol
+latex morSol.tex
+latex morSol.tex
+dvipdf morSol.dvi

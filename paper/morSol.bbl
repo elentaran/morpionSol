@@ -1,0 +1,102 @@
+\begin{thebibliography}{10}
+
+\bibitem{auer}
+P.~Auer, N.~Cesa-Bianchi, and P.~Fischer.
+\newblock Finite-time analysis of the multiarmed bandit problem.
+\newblock {\em Machine Learning}, 47(2/3):235--256, 2002.
+
+\bibitem{unleo}
+A.~Auger and O.~Teytaud.
+\newblock Continuous lunches are free plus the design of optimal optimization
+  algorithms.
+\newblock {\em Algorithmica}, Accepted.
+
+\bibitem{bruegmann}
+B.~Bruegmann.
+\newblock Monte-carlo {G}o (unpublished).
+\newblock 1993.
+
+\bibitem{peacg}
+G.~{C}haslot, C.~{F}iter, J.-B. {H}oock, A.~{R}immel, and O.~{T}eytaud.
+\newblock {A}dding expert knowledge and exploration in {M}onte-{C}arlo {T}ree
+  {S}earch.
+\newblock In {\em {A}dvances in {C}omputer {G}ames}, {P}amplona {E}spagne,
+  2009. {S}pringer.
+
+\bibitem{chaslot06a}
+G.~Chaslot, J.-T. Saito, B.~Bouzy, J.~W. H.~M. Uiterwijk, and H.~J. van~den
+  Herik.
+\newblock {Monte-Carlo Strategies for Computer Go}.
+\newblock In P.-Y. Schobbens, W.~Vanhoof, and G.~Schwanen, editors, {\em
+  Proceedings of the 18th BeNeLux Conference on Artificial Intelligence, Namur,
+  Belgium}, pages 83--91, 2006.
+
+\bibitem{coulom06}
+R.~Coulom.
+\newblock Efficient {S}electivity and {B}ackup {O}perators in {M}onte-{C}arlo
+  {T}ree {S}earch.
+\newblock {\em In P. Ciancarini and H. J. van den Herik, editors, Proceedings
+  of the 5th International Conference on Computers and Games, Turin, Italy},
+  pages 72--83, 2006.
+
+\bibitem{icmlrimmel}
+F.~De~Mesmay, A.~Rimmel, Y.~Voronenko, and M.~P{\"u}schel.
+\newblock {Bandit-based optimization on graphs with application to library
+  performance tuning}.
+\newblock In {\em Proceedings of the 26th Annual International Conference on
+  Machine Learning}, pages 729--736. ACM, 2009.
+
+\bibitem{icmlmogo}
+S.~Gelly and D.~Silver.
+\newblock Combining online and offline knowledge in {UCT}.
+\newblock In {\em ICML '07: Proceedings of the 24th international conference on
+  Machine learning}, pages 273--280, New York, NY, USA, 2007. ACM Press.
+
+\bibitem{knuth1975analysis}
+D.~Knuth and R.~Moore.
+\newblock {An analysis of alpha-beta pruning}.
+\newblock {\em Artificial Intelligence}, 6(4):293--326, 1975.
+
+\bibitem{uct}
+L.~Kocsis and C.~Szepesvari.
+\newblock Bandit based {M}onte-{C}arlo planning.
+\newblock In {\em 15th European Conference on Machine Learning (ECML)}, pages
+  282--293, 2006.
+
+\bibitem{lairobbins}
+T.~Lai and H.~Robbins.
+\newblock Asymptotically efficient adaptive allocation rules.
+\newblock {\em Advances in Applied Mathematics}, 6:4--22, 1985.
+
+\bibitem{ieeemogo}
+C.-S. {L}ee, M.-H. {W}ang, G.~{C}haslot, J.-B. {H}oock, A.~{R}immel,
+  O.~{T}eytaud, S.-R. {T}sai, S.-C. {H}su, and T.-P. {H}ong.
+\newblock {T}he {C}omputational {I}ntelligence of {M}o{G}o {R}evealed in
+  {T}aiwan's {C}omputer {G}o {T}ournaments.
+\newblock {\em {IEEE} {T}ransactions on {C}omputational {I}ntelligence and {AI}
+  in games}, 2009.
+
+\bibitem{adp}
+W.-B. Powell.
+\newblock {\em Approximate Dynamic Programming}.
+\newblock Wiley, 2007.
+
+\bibitem{roletecml}
+P.~Rolet, M.~Sebag, and O.~Teytaud.
+\newblock Optimal active learning through billiards and upper confidence trees
+  in continous domains.
+\newblock In {\em Proceedings of the ECML conference}, 2009.
+
+\bibitem{fabienHavannah}
+F.~{T}eytaud and O.~{T}eytaud.
+\newblock {C}reating an {U}pper-{C}onfidence-{T}ree program for {H}avannah.
+\newblock In {\em {ACG} 12}, {P}amplona {E}spagne, 2009.
+
+\bibitem{mogofpu}
+Y.~Wang and S.~Gelly.
+\newblock Modifications of {UCT} and sequence-like simulations for
+  {M}onte-{C}arlo {G}o.
+\newblock In {\em IEEE Symposium on Computational Intelligence and Games,
+  Honolulu, Hawaii}, pages 175--182, 2007.
+
+\end{thebibliography}
