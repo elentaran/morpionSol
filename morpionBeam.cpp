@@ -24,12 +24,15 @@ string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW SEARCH"};
 #define VERBOSE
 #define SAVEBEST
 
+#define STAGN 20 
+
 
 // algorithm variables and default values
-int level = 2;
+int level = 3;
 int nbTimes = 1;
 int nbSearches = 100;
-float convRatio = 1.0;
+float convRatio = 0.0;
+float bestInfl = 5.0;
 //int searchType = TYPE_NRPA; 
 //int searchType = TYPE_NESTED; 
 int searchType = TYPE_NEWSEARCH; 
@@ -48,7 +51,7 @@ const int MaxBeam = 100;
 int bestscore = 0;
 int nbPlayouts = 0;
 
-int nbPoints = 100;
+int nbPoints = 0;
 
 bool touching = true;
 //bool touching = false;
@@ -81,7 +84,6 @@ void initHash () {
         }
 }
 
-        int bestScoreMove [MaxCode];
 
 class Problem {
     public:
@@ -90,8 +92,12 @@ class Problem {
         unsigned long long hash;
 
         double policy [MaxCode];
+
+        // we save the average score for each move
         int totalScoreMove [MaxCode];
         int nbPlayMove [MaxCode];
+        // we save the best score for each move
+        int bestScoreMove [MaxCode];
 
         int score;
 
@@ -169,6 +175,7 @@ class Problem {
             for (int i = 0; i < MaxCode; i++){
                 totalScoreMove [i] = 0;
                 nbPlayMove [i] = 0;
+                bestScoreMove [i] = 0;
             }
         }
 
@@ -630,22 +637,32 @@ class Problem {
         }
 
         double decreaseValue(int index) {
-            double ratio;
+            double ratio=0;
             if (bestScoreMove[code(index)] == 0) {
                 ratio = 0;
             } else {
                 //ratio = 0;
-                ratio = 2*(double) (lengthBestRollout-bestScoreMove[code(index)])/lengthBestRollout;
+                ratio = bestInfl *  (double) (lengthBestRollout-bestScoreMove[code(index)])/lengthBestRollout;
             }
-            //cout << ratio << endl;
+            //return exp(policy[code(index)]);
+            //cout << "moves: " <<  (nbPlayMove[code(index)] ) << endl;
+           // if (nbPlayMove[code(index)] == 0) {
+           //     ratio = -100;
+           // }
+           // cout << "pol: " << (double) policy[code(index)] << endl;
+           // cout << "val: " << (double) exp(policy[code(index)]) << endl;
+            //cout << "ratio: " << ratio << endl;
+           // return exp(policy[code(index)]);
             return exp(policy[code(index)]+ratio);
+            //return exp(policy[code(index)])+ratio;
         }
 
         void adaptNew () {
             Problem p;
             p.init ();
-            for (int i = 0; i < MaxCode; i++)
+            for (int i = 0; i < MaxCode; i++) {
                 p.policy [i] = policy [i];
+            }
             for (int j = 0; j < lengthBestRollout; j++) {
                 p.policy [code (bestRollout [j])] += 1.;
                 double totalSum = 0.0;
@@ -657,10 +674,29 @@ class Problem {
             }
             for (int i = 0; i < MaxCode; i++)
                 policy [i] = p.policy [i];
-         //   cout << "new adapt" << endl;
-         //   for (list<Move>::iterator it = p.moves.begin (); it != p.moves.end (); ++it)  {
-         //       cout << "move: " << code(*it) << " value: " << policy[code(*it)] << " best: " << bestScoreMove[code(*it)] << endl;
-         //   }
+
+//#define DEBUG
+#ifdef DEBUG
+            cout << "new adapt" << endl;
+            Problem p2;
+            p2.init();
+            for (int i = 0; i < MaxCode; i++) 
+                p2.policy [i] = policy [i];
+            //for (int j = 0; j < lengthBestRollout; j++) {
+            for (int j = 0; j < 1; j++) {
+                for (list<Move>::iterator it = p2.moves.begin (); it != p2.moves.end (); ++it)  {
+                    cout << "move: " << code(*it) << " value: " << policy[code(*it)] << " best: " << bestScoreMove[code(*it)];
+                    cout << " nb played: " << nbPlayMove[code(*it)];
+                    cout << " dec value: " << decreaseValue(*it);
+                    if (nbPlayMove[code(*it)] != 0)
+                        cout << " mean : " << (float) totalScoreMove[code(*it)]/nbPlayMove[code(*it)]<< endl;
+                    else
+                        cout << " mean(0) : " << totalScoreMove[code(*it)]<< endl;
+                }
+                cout << endl;
+                p2.playMove (bestRollout [j]);
+            }
+#endif
 
         }
 
@@ -787,7 +823,7 @@ class Problem {
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
                             //fprintf (stderr, "n = %d, progress = %d, score = %d\n", n, i, scoreRollout);
-                            fprintf (stderr, "n = %d, nbPlay = %d, progress = %d, score = %d\n", n, nbPlayouts, i, scoreRollout);
+                            fprintf (stderr, "n = %d, nbPlay = %d, progress = %d, score = %d / %d\n", n, nbPlayouts, i, scoreRollout, bestscore);
                         }
 #endif
                         scoreBestRollout = scoreRollout;
@@ -821,13 +857,22 @@ class Problem {
             else {
                 lengthBestRollout = 0;
                 scoreBestRollout = 0;
-                int stagn = 0;
-                while (stagn<10) {
-                //for (int i=0; i<nbSearches; i++) {
+
+#ifdef STAGN
+                int stagn=0;
+                while(stagn<STAGN) {
+#else
+                for (int i=0; i<nbSearches; i++) {
+#endif
                     Problem p = *this;
                     int scoreRollout = p.newSearch (n - 1);
+#ifdef STAGN
                     if (scoreRollout > scoreBestRollout) 
                         stagn=0;
+                    else
+                        stagn++;
+#endif
+
                     if (scoreRollout >= scoreBestRollout) {
                         p.updateBest();
 #ifdef VERBOSE
@@ -844,14 +889,20 @@ class Problem {
                         for (int j = 0; j < lengthBestRollout; j++)
                             bestRollout [j] = p.variation [j];
 
-                    } else {
-                        stagn++;
                     }
-                    adapt ();
+                    //adapt ();
+                    updateBestScoreMove(p);
+                    updateScoreMove(p);
+#ifdef DEBUG
+                    cout << endl << "============ n: " <<  n << endl;
+#endif
+                    adaptNew ();
+#ifndef DEBUG
                     if (nbPlayouts % (int)(pow(nbSearches,level)/nbPoints) == 0 && n == 1) {
                         cout << "Score: " << bestscore << endl;
                         cout << "Playout: " << nbPlayouts << endl;
                     }
+#endif
                     
                 }
             }
@@ -902,6 +953,10 @@ int main (int argc, char ** argv) {
         }
         else if (!strcmp (argv [i], "-convRatio")) {
             if (sscanf (argv [++i], "%f", & convRatio) != 1)
+                usage();
+        }
+         else if (!strcmp (argv [i], "-bestInfl")) {
+            if (sscanf (argv [++i], "%f", & bestInfl) != 1)
                 usage();
         }
         else if (!strcmp (argv [i], "-touching")) {

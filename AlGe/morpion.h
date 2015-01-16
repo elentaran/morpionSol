@@ -8,6 +8,7 @@
 #include <sys/time.h>
 #include <list>
 #include <algorithm>
+#include <vector>
 
 using namespace std;
 
@@ -19,6 +20,7 @@ using namespace std;
 extern int bestVal;
 #endif
 
+
 const string highScoreLocation = "/home/rimmel_arp/Research/morpionSol/AlGe/allTimeBest";
 const string highScoreLocationNoTouching = "/home/rimmel_arp/Research/morpionSol/AlGe/allTimeBestNoTouching";
 
@@ -29,7 +31,7 @@ const int MaxCode = 4 * Size * Size;
 const int MaxLevel = 5;
 const int MaxBeam = 100;
 
-const int nbPoints = 1;
+const int nbPoints = 10000;
 
 const bool touching = true;
 //const bool touching = false;
@@ -60,6 +62,7 @@ class Morp{
 
 
         double score;
+        double sd;
 
         list<int> moves;
 
@@ -72,8 +75,10 @@ class Morp{
         void initRand(double sigma=1);
         void initFast();
         void mutate();
+        void mutateSA();
         void eval();
         Morp copy();
+        double compVal();
 
         double generateGauss();
         void computeHash (); 
@@ -101,6 +106,6 @@ class Morp{
         double getValMove(Move move) ;
         int chooseRandomMoveNRPA (list<int> & moves) ;
         int playoutNRPA () ;
-        void adapt () ;
-        int NRPA (int n) ;
+        //void adapt () ;
+        //int NRPA (int n) ;
 };

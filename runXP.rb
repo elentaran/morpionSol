@@ -19,17 +19,17 @@ $execProg = './computeStats.rb -n 1000 -p "./morpionSol PARAM"'
 #$paramValues = (0..10).to_a
 #$paramValues = [2,3]
 #$paramValues = ["-level 1 -nbSearches 1000000", "-level 2 -nbSearches 1000", "-level 3 -nbSearches 100", "-level 4 -nbSearches 32"]
-$paramValues = ["-convRatio "].product(["0.5","0.7","0.9","1.0","1.1","1.3","1.5"]).map(&:join)
+$paramValues = ["-bestInfl "].product(["-1.0","0.0","1.0","2.0","3.0","5.0","7.0","10.0"]).map(&:join)
 #$paramValues = ["-DDIM=4 -DLARGEUR=25","-DDIM=9 -DLARGEUR=10","-DDIM=8 -DLARGEUR=20"]
 #param1 = ["-DLAMBDA=63 -DGEN=158", "-DLAMBDA=200 -DGEN=500", "-DLAMBDA=630 -DGEN=1580"]
 #param2 = [" -DDIM=4 -DLARGEUR=25"," -DDIM=9 -DLARGEUR=10"," -DDIM=8 -DLARGEUR=20"]
 #$paramValues = param1.product(param2).map(&:join)
 
 # name of the parameter
-$paramName = "convRatio"
+$paramName = "bestInfl"
 
 # name of the file where the results will be stored (if empty, results will be printed on screen).
-$fileRes = "nrpaCR.data"             
+$fileRes = "nrpaBI_lvl3.data"             
 
 # number of cores that should be used
 $nbcores = 4

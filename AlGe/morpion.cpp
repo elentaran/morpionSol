@@ -63,6 +63,18 @@ void Morp::initFast() {
 
 }
 
+void Morp::mutateSA() {
+
+    //sigma +=  sigma*generateGauss();
+    sigma +=  generateGauss();
+
+    // mutate each policy value
+    for (int i=0; i<MaxCode; i++) {
+        policy[i] = policy[i] + sigma * generateGauss();
+    }
+    eval();
+}
+
 void Morp::mutate() {
 
     // mutate each policy value
@@ -77,16 +89,29 @@ void Morp::eval() {
     double bestScore = 0;
     Morp p;
     double sum=0.0;
-    int nbTry=10;
+    int nbTry=100;
+    vector<double> res;
     for (int i=0;i<nbTry;i++) {
         p = *this;
         tempScore = p.playoutNRPA();
         sum+=tempScore;
         if (tempScore > bestScore)
             bestScore = tempScore;
+        res.push_back(tempScore);
     }
+    double sumE=0;
+    for (int i=0;i<res.size();i++) {
+        sumE+=(res[i]-sum/nbTry) * (res[i]-sum/nbTry);
+    }
+
     //score = bestScore;
-    score = sum/nbTry;
+    sd=sqrt(sumE/nbTry);
+    score=sum/nbTry;
+}
+
+double Morp::compVal() {
+    return score + 0.5*sd;
+    //return score;
 }
 
 // generate a random number based on a normal distribution
@@ -525,7 +550,7 @@ int Morp::playoutNRPA () {
 }
 
 
-
+/*
 void Morp::adapt () {
     Morp p;
     p.init ();
@@ -543,8 +568,8 @@ void Morp::adapt () {
     for (int i = 0; i < MaxCode; i++)
         policy [i] = p.policy [i];
 }
-
-
+*/
+/*
 int Morp::NRPA (int n) {
     if (n == 0) 
         return playoutNRPA ();
@@ -586,7 +611,7 @@ int Morp::NRPA (int n) {
     }
     return scoreBestRollout;
 }
-
+*/
 
 
 
