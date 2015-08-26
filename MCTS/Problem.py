@@ -1,30 +1,35 @@
 class AllRight:
 
-    maxProf = 10
+    maxProf = 100
 
-    def __init__(self):
-        self.seqMove=[]
+    def __init__(self,situation=None):
+        if situation is None:
+            self.situation = []
+        else:
+            self.situation = situation
 
     def __str__(self):
         string = ""
-        for move in self.seqMove:
+        for move in self.situation:
             string += move + " "
         return string
 
     def getMoves(self):
-        if len(self.seqMove) >= self.maxProf:
-            return None 
+        if len(self.situation) >= self.maxProf:
+            return [] 
         else:
             return ["left","right"]
 
-    def getValue(self):
+    def getValue(self, incr=1):
         val = 0
-        for move in self.seqMove:
+        inc = 1
+        for move in self.situation:
             if move == "right":
-                val+=1
+                val+=inc
+            inc*=incr
 
-        return val
+        return val/self.maxProf
 
     def playMove(self,move):
-        self.seqMove.append(move)
+        self.situation.append(move)
 
