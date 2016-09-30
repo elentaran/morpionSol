@@ -7,7 +7,6 @@ DEF=-DBESTLEARNING
 
 all: $(EXEC)
 
-
 debug: clean
 	$(MAKE) $(MAKEFILE) DEBUG="-g"
 

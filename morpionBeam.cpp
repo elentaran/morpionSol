@@ -26,18 +26,27 @@ string tabSearch[4] = {"PLAYOUT","NESTED","NRPA", "NEW SEARCH"};
 
 #define STAGN 20 
 
+#define CREATE_BEST_SCORES
 
 // algorithm variables and default values
 int level = 3;
 int nbTimes = 1;
 int nbSearches = 100;
 float convRatio = 0.0;
-float bestInfl = 5.0;
+float bestInfl = 3.0;
+float loadScore = 0.0;
+bool loadBest = false;
 //int searchType = TYPE_NRPA; 
 //int searchType = TYPE_NESTED; 
 int searchType = TYPE_NEWSEARCH; 
 
 
+const string seqLocation = "/home/rimmel_arp/Research/morpionSol/seq";
+const string seqLocationNoTouching = "/home/rimmel_arp/Research/morpionSol/seqNoTouching";
+const string bestScoresLocation = "/home/rimmel_arp/Research/morpionSol/bestScores";
+const string bestScoresLocationNoTouching = "/home/rimmel_arp/Research/morpionSol/bestScoresNoTouching";
+const string bestMovesLocation = "/home/rimmel_arp/Research/morpionSol/bestMoves";
+const string bestMovesLocationNoTouching = "/home/rimmel_arp/Research/morpionSol/bestMovesNoTouching";
 const string highScoreLocation = "/home/rimmel_arp/Research/morpionSol/allTimeBest";
 const string highScoreLocationNoTouching = "/home/rimmel_arp/Research/morpionSol/allTimeBestNoTouching";
 
@@ -59,6 +68,7 @@ int nbRollouts = 10;
 
 int bestOverall = 70;
 
+int* globalBestScores;
 
 int dxdir [8] = {-1, -1, 0, 1, 1, 1, 0, -1};
 int dydir [8] = { 0,  1, 1, 1, 0,-1,-1, -1};
@@ -167,8 +177,25 @@ class Problem {
         }
 
         void initPolicy () {
-            for (int i = 0; i < MaxCode; i++)
-                policy [i] = 0.0;
+            int* tempBestScores = loadBestScores();
+
+            double mean = 0;
+            int nbBS = 0;
+            for (int i = 0; i < MaxCode; i++) {
+                if(tempBestScores[i] != 0) {
+                    mean+=tempBestScores[i];
+                    nbBS++;
+                }
+            }
+            mean/=nbBS;
+            //cout << "mean: " << mean << endl;
+            //cout << "nb: " << nbBS << endl;
+            //exit(0);
+            for (int i = 0; i < MaxCode; i++) {
+                //policy [i] = 0.0;
+                //policy [i] = tempBestScores[i]*loadScore;
+                policy [i] = (tempBestScores[i]-mean)*loadScore;
+            }
         }
 
         void initScoreMove () {
@@ -428,6 +455,56 @@ class Problem {
             findMovesIncluding (i,j, moves);
         }
 
+
+        int* orderSeq() {
+            int* temp = new int[MaxLengthPlayout];
+            int lastMin = 0;
+            int currentMin;
+            bool find = true;
+            int cursor = 0;
+            while (find) {
+                find = false;
+                currentMin = 1000000000;
+                for (int i = 0; i < MaxLengthPlayout; i++){
+        //            cout << bestRollout[i] << endl;
+                    if (bestRollout[i] < currentMin && bestRollout[i] > lastMin) {
+                        currentMin = bestRollout[i];
+                        find = true;
+                    }
+                }
+                if (find) {
+                    temp[cursor] = currentMin;
+                    cursor++;
+                }
+                lastMin = currentMin;
+            }
+            return temp;
+        }
+
+        void writeSeq(string fileName="") {
+            if (fileName == "") {
+                if (touching)
+                    fileName = seqLocation;
+                else
+                    fileName = seqLocationNoTouching;
+            }
+
+            ofstream myfile;
+            myfile.open(fileName.c_str(),std::ios_base::app);
+            if (myfile.is_open())
+            {
+                for (int i=0;i<MaxLengthPlayout;i++) {
+                    myfile << variation[i] << " ";
+                }
+                myfile << endl;
+                myfile.close();
+            }
+            else
+            {
+                cerr << "could not write the file: "<<fileName.c_str() << endl;
+            }
+        }
+
         void writeBest(string fileName="") {
             if (fileName == "") {
                 if (touching)
@@ -502,15 +579,136 @@ class Problem {
 #endif
         }
 
+        void updateBestScores(string fileName="") {
+            if (fileName == "") {
+                if (touching)
+                    fileName = bestScoresLocation;
+                else
+                    fileName = bestScoresLocationNoTouching;
+            }
+            int* bestScoresTemp = loadBestScores();
+            ofstream myfile;
+            myfile.open(fileName.c_str());
+            if (myfile.is_open())
+            {
+                for (int i = 0; i < MaxCode; i++){
+                    if (bestScoresTemp[i] >= globalBestScores[i]) {
+                        myfile << bestScoresTemp[i] << " ";
+                        globalBestScores[i] = bestScoresTemp[i];
+                    } else {
+                        if (bestScoresTemp[i] == 0)
+                            cout << "adding " << i << endl;
+                        myfile << globalBestScores[i] << " ";
+                    }
+                }
+                myfile << endl;
+                myfile.close();
+            }
+            else
+            {
+                cerr << "could not write the file: "<<fileName.c_str() << endl;
+            }
+        }
+
+        int* loadBestScores(string fileName="") {
+            if (fileName == "") {
+                if (touching)
+                    fileName = bestScoresLocation;
+                else
+                    fileName = bestScoresLocationNoTouching;
+            }
+            ifstream myfile;
+            myfile.open(fileName.c_str());
+            int* bestScores = new int[MaxCode];
+            for (int i = 0; i < MaxCode; i++){
+                bestScores[i]=0;
+            }
+            if (myfile.is_open())
+            {
+                for (int i = 0; i < MaxCode; i++){
+                    myfile >> bestScores[i];
+                }
+                myfile.close();
+            }
+            else
+            {
+                cerr << "could not write the file: "<<fileName.c_str() << endl;
+            }
+            return bestScores;
+        }
+
+        void saveBestMoves(string fileName="") {
+            if (fileName == "") {
+                if (touching)
+                    fileName = bestMovesLocation;
+                else
+                    fileName = bestMovesLocationNoTouching;
+            }
+            ofstream myfile;
+            myfile.open(fileName.c_str());
+            if (myfile.is_open())
+            {
+                myfile << bestscore << endl;
+                for (int i = 0; i < MaxLengthPlayout; i++){
+                    myfile << bestRollout[i] << " ";
+                }
+                myfile << endl;
+                myfile.close();
+            }
+            else
+            {
+                cerr << "could not write the file: "<<fileName.c_str() << endl;
+            }
+        }
+
+        int loadBestMoves(string fileName="", bool load=true) {
+            if (fileName == "") {
+                if (touching)
+                    fileName = bestMovesLocation;
+                else
+                    fileName = bestMovesLocationNoTouching;
+            }
+            ifstream myfile;
+            myfile.open(fileName.c_str());
+            int score=0;
+            if (myfile.is_open())
+            {
+                myfile >> score;
+                if (load) {
+                    for (int i = 0; i < MaxLengthPlayout; i++){
+                        myfile >> bestRollout[i];
+                    }
+                }
+                myfile.close();
+            } else {
+                cerr << "could not read the file" << endl;
+            }
+            return score;
+        }
+
+        void updateBestMoves() {
+            int curBest = loadBestMoves("",false);
+            if (score > curBest) {
+                saveBestMoves();
+            }
+        }
+
 
         double getValMove(Move move) {
             return exp (policy [code (move)]);
         }
 
         int chooseRandomMoveNRPA (list<int> & moves) {
+
             double totalSum = 0.0;
             for (list<Move>::iterator it = moves.begin (); it != moves.end (); ++it) {
-                totalSum += getValMove(*it);
+#ifdef CREATE_BEST_SCORES
+                if (globalBestScores[code(*it)] == 0) {
+                    cout << "new move!!" << endl;
+                    return *it;
+                }
+#endif
+                totalSum += getValMove(*it) ;
             }
             double index = totalSum * (rand() / (RAND_MAX + 1.0));
             double sum = 0.0;
@@ -528,12 +726,12 @@ class Problem {
             while (true) {
                 if (moves.size () == 0) {
                     score = lengthVariation;
-                  //  int countDiff=0;
-                  //  for (int i=0; i<lengthVariation; i++) {
-                  //      if (variation[i] != bestRollout[i])
-                  //          countDiff++;
-                  //  }
-                  //  cerr << "diff: " << countDiff << "/" << lengthVariation << endl;
+                    //  int countDiff=0;
+                    //  for (int i=0; i<lengthVariation; i++) {
+                    //      if (variation[i] != bestRollout[i])
+                    //          countDiff++;
+                    //  }
+                    //  cerr << "diff: " << countDiff << "/" << lengthVariation << endl;
                     if (score>bestscore) {
                         bestscore=score;
                     }
@@ -585,11 +783,24 @@ class Problem {
         }
 
         void updateBestScoreMove(Problem p) {
+            bool modifGlobal = false;
             for (int i=0; i<p.lengthVariation; i++) {
                 if (p.lengthVariation > bestScoreMove[code(p.variation[i])]) {
                     bestScoreMove[code(p.variation[i])] = p.lengthVariation;
                 }
+#ifdef CREATE_BEST_SCORES
+                if (p.lengthVariation > globalBestScores[code(p.variation[i])]) {
+                    cout << code(p.variation[i]) << " +++ " << globalBestScores[code(p.variation[i])] << " > " << p.lengthVariation << endl;
+                    globalBestScores[code(p.variation[i])] = p.lengthVariation;
+                    modifGlobal = true;
+                }
+#endif
             }
+#ifdef CREATE_BEST_SCORES
+            if (modifGlobal) {
+                updateBestScores();
+            }
+#endif
         }
 
 
@@ -638,6 +849,7 @@ class Problem {
 
         double decreaseValue(int index) {
             double ratio=0;
+                
             if (bestScoreMove[code(index)] == 0) {
                 ratio = 0;
             } else {
@@ -646,13 +858,13 @@ class Problem {
             }
             //return exp(policy[code(index)]);
             //cout << "moves: " <<  (nbPlayMove[code(index)] ) << endl;
-           // if (nbPlayMove[code(index)] == 0) {
-           //     ratio = -100;
-           // }
-           // cout << "pol: " << (double) policy[code(index)] << endl;
-           // cout << "val: " << (double) exp(policy[code(index)]) << endl;
+            // if (nbPlayMove[code(index)] == 0) {
+            //     ratio = -100;
+            // }
+            // cout << "pol: " << (double) policy[code(index)] << endl;
+            // cout << "val: " << (double) exp(policy[code(index)]) << endl;
             //cout << "ratio: " << ratio << endl;
-           // return exp(policy[code(index)]);
+            // return exp(policy[code(index)]);
             return exp(policy[code(index)]+ratio);
             //return exp(policy[code(index)])+ratio;
         }
@@ -675,14 +887,13 @@ class Problem {
             for (int i = 0; i < MaxCode; i++)
                 policy [i] = p.policy [i];
 
-//#define DEBUG
+            //#define DEBUG
 #ifdef DEBUG
             cout << "new adapt" << endl;
             Problem p2;
             p2.init();
             for (int i = 0; i < MaxCode; i++) 
                 p2.policy [i] = policy [i];
-            //for (int j = 0; j < lengthBestRollout; j++) {
             for (int j = 0; j < 1; j++) {
                 for (list<Move>::iterator it = p2.moves.begin (); it != p2.moves.end (); ++it)  {
                     cout << "move: " << code(*it) << " value: " << policy[code(*it)] << " best: " << bestScoreMove[code(*it)];
@@ -792,10 +1003,10 @@ class Problem {
 #endif
                         }
                     }
-                    if (nbPlayouts % (int)(pow(nbSearches*10*80,level)/nbPoints) == 0 && n == 1) {
-                        cout << "Score: " << scoreBestRollout << endl;
-                        cout << "Playout: " << nbPlayouts << endl;
-                    }
+                    // if (nbPlayouts % (int)(pow(nbSearches*10*80,level)/nbPoints) == 0 && n == 1) {
+                    //     cout << "Score: " << scoreBestRollout << endl;
+                    //     cout << "Playout: " << nbPlayouts << endl;
+                    // }
                 }
                 playMove (bestMove);
                 //findMoves ();
@@ -818,7 +1029,6 @@ class Problem {
                     if (scoreRollout >= scoreBestRollout) {
                         p.updateBest();
 #ifdef VERBOSE
-                        //if (((level - n) < 2) && (scoreRollout > scoreBestRollout)) {
                         if (( n > 2) && (scoreRollout > scoreBestRollout)) {
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
@@ -838,8 +1048,7 @@ class Problem {
                                 bestRollout [j] = p.bestRollout [j];
                         }
                     }
-                    //adapt ();
-                    adaptRatio ();
+                    adapt ();
                     if (nbPlayouts % (int)(pow(nbSearches,level)/nbPoints) == 0 && n == 1) {
                         cout << "Score: " << bestscore << endl;
                         cout << "Playout: " << nbPlayouts << endl;
@@ -853,16 +1062,27 @@ class Problem {
         int newSearch (int n) {
             if (n == 0) 
                 return playoutNRPA ();
-                //return playoutNew ();
+            //return playoutNew ();
             else {
                 lengthBestRollout = 0;
                 scoreBestRollout = 0;
+                if (loadBest) {
+                    if (n == level) {
+                        cout << "load" << endl;
+                        int score = loadBestMoves();
+                        lengthBestRollout = score;
+                        scoreBestRollout = score;
+                        for (int i=0; i<5; i++)
+                            adapt();
+                    }
+                }
 
 #ifdef STAGN
                 int stagn=0;
                 while(stagn<STAGN) {
 #else
-                for (int i=0; i<nbSearches; i++) {
+                       for (int i=0; i<nbSearches; i++) {
+                    //   }
 #endif
                     Problem p = *this;
                     int scoreRollout = p.newSearch (n - 1);
@@ -875,20 +1095,28 @@ class Problem {
 
                     if (scoreRollout >= scoreBestRollout) {
                         p.updateBest();
+
 #ifdef VERBOSE
-                        if ((n > 2) && (scoreRollout > scoreBestRollout)) {
+                        if (((n > 2) && (scoreRollout > scoreBestRollout)) || n>3) {
                             for (int t = 0; t < n - 1; t++)
                                 fprintf (stderr, "\t");
                             //fprintf (stderr, "n = %d, score = %d, nb search = %d\n", n, scoreRollout, i);
+#ifdef STAGN
+                            fprintf (stderr, "n = %d, nbPlay = %d, score = %d / %d, stagn = %d / %d\n", n, nbPlayouts, scoreRollout, bestscore, stagn, STAGN);
+#else
                             fprintf (stderr, "n = %d, nbPlay = %d, score = %d / %d\n", n, nbPlayouts, scoreRollout, bestscore);
+#endif
+
                         }
 #endif
+
                         scoreBestRollout = scoreRollout;
-                        
                         lengthBestRollout = p.lengthVariation;
                         for (int j = 0; j < lengthBestRollout; j++)
                             bestRollout [j] = p.variation [j];
 
+                        //if (loadBest)
+                        p.updateBestMoves();
                     }
                     //adapt ();
                     updateBestScoreMove(p);
@@ -898,12 +1126,12 @@ class Problem {
 #endif
                     adaptNew ();
 #ifndef DEBUG
-                    if (nbPlayouts % (int)(pow(nbSearches,level)/nbPoints) == 0 && n == 1) {
-                        cout << "Score: " << bestscore << endl;
-                        cout << "Playout: " << nbPlayouts << endl;
-                    }
+                      if (nbPlayouts % (int)(pow(nbSearches,level)/nbPoints) == 0 && n == 1) {
+                          cout << "Score: " << bestscore << endl;
+                          cout << "Playout: " << nbPlayouts << endl;
+                      }
 #endif
-                    
+
                 }
             }
 
@@ -934,6 +1162,7 @@ int main (int argc, char ** argv) {
     srand((time.tv_sec * 1000) + (time.tv_usec / 1000));
     //srand (time(NULL));
 
+
     for (int i = 1; i < argc; i++) {
         if (!strcmp (argv [i], "-level")) {
             if (sscanf (argv [++i], "%d", & level) != 1)
@@ -955,8 +1184,15 @@ int main (int argc, char ** argv) {
             if (sscanf (argv [++i], "%f", & convRatio) != 1)
                 usage();
         }
-         else if (!strcmp (argv [i], "-bestInfl")) {
+        else if (!strcmp (argv [i], "-loadBest")) {
+            loadBest = true;
+        }
+        else if (!strcmp (argv [i], "-bestInfl")) {
             if (sscanf (argv [++i], "%f", & bestInfl) != 1)
+                usage();
+        }
+        else if (!strcmp (argv [i], "-loadScore")) {
+            if (sscanf (argv [++i], "%f", & loadScore) != 1)
                 usage();
         }
         else if (!strcmp (argv [i], "-touching")) {
@@ -970,8 +1206,13 @@ int main (int argc, char ** argv) {
 
 
     Problem p,bestP;
+#ifdef CREATE_BEST_SCORES
+    globalBestScores = p.loadBestScores();
+#endif
     for (int i=0; i<nbTimes; i++) {
-        p.init ();
+        p.init();
+        if (loadScore != 0)
+            p.initPolicy();
         int score;
         switch(searchType) {
             case TYPE_PLAYOUT:
@@ -995,6 +1236,19 @@ int main (int argc, char ** argv) {
             bestP = p;
         }
     }
+
+//    p.updateBestScores();
+    //p.writeSeq();
+    int* test = p.loadBestScores();
+    int nb=0;
+    int sum=0;
+    for (int i=0; i<MaxCode; i++) {
+        sum+=test[i];
+        if (test[i] != 0)
+            nb++;
+    }
+    cout << nb << endl;
+    cout << sum << endl;
 
 
     //char s [1000];
